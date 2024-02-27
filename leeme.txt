@@ -1,0 +1,58 @@
+﻿Prácticas de Programación Gráfica
+Master en Inteligencia Artificial, Reconocimiento de Formas e Imagen Digital
+Depto. Sistemas Informáticos y Computación
+
+Paco Abad. fjabad@dsic.upv.es
+
+Instrucciones de uso:
+
+Windows
+-------
+
+* Requisitos:
+Sólo necesitas tener instalado el Visual Studio 2022, junto con el paquete de soporte de C++ y desarrollo nativo.
+Es *muy* importante actualizar el driver de la tarjeta gráfica de tu ordenador, para asegurarte de tener acceso a toda la capacidad del hardware.
+
+* Prácticas:
+El paquete de las prácticas contiene todas las bibliotecas necesarias, y también se baja algunas la primera vez. Hay que usar CMake para construir los ficheros de la solución de Visual Studio.
+Para ello, instala CMake desde https://cmake.org/download/) y sigue los siguientes pasos:
+
+1. Baja el código de las prácticas, usando git o bajando el ZIP desde la página de Github (https://github.com/fjabad/pgupv.git)
+2. Si usas el interfaz gráfico de CMake (cmake-gui), sigue leyendo. Si prefieres usar la consola, lee las instrucciones de Linux más abajo.
+   Selecciona el directorio raíz del proyecto (el que contiene este fichero) en la caja "Where is the source code"
+   Escribe un directorio nuevo (por ejemplo, llamado build dentro del directorio anterior) en "Where to build the binaries"
+   Haz clic en Configure. Preguntará qué compilador usar. Selecciona la versión de Visual Studio que tengas instalada.
+   Haz clic en Generate.
+   Haz clic en Open Project. Si todo ha funcionado correctamente, se abrirá el Visual Studio con la solución.
+3. Selecciona cualquier proyecto dentro de la carpeta examples, haz clic derecho sobre el proyecto, y "Establecer como proyecto de inicio". Pulsa F5 y ¡disfruta!. Abre el fichero main.cpp y estudia el código, ejecútalo paso a paso, etc.
+
+Durante la ejecución de las prácticas se pueden producir excepciones como respuesta a errores. Si quieres que el depurador se detenga en la línea que ha generado la excepción para poder ver el estado de la aplicación en ese momento, en Visual Studio debes:
+1. Selecciona la opción Depurar\Ventanas\Configuración de excepciones
+2. En el panel que aparece, botón derecho en el apartado "C++ Exceptions", y pulsa en Agregar
+3. Añade a la lista la opción std::runtime_error
+
+
+Linux
+-----
+
+* Requisitos:
+
+Antes de nada, tendrás que instalar las siguientes dependencias:
+
+sudo apt install build-essential git cmake libfreeimage-dev libfreetype-dev pkg-config libgtk-3-dev libglu1-mesa-dev ffmpeg libavcodec-dev libavdevice-dev libavformat-dev libassimp-dev libsdl2-dev libsdl2-ttf-dev libglew-dev
+
+
+1. Baja el código de las prácticas, usando git o bajando el ZIP desde la página de Github.
+2. Si vas a usar Visual Studio COde, instala el soporte de C++ y CMake y abre el directorio raíz (el que contiene este fichero). Si prefieres la consola:
+
+git clone https://github.com/fjabad/pgupv.git
+cd pgupv
+mkdir build
+cd build
+cmake ..
+make -j4
+
+3. Ve al directorio bin y prueba los ejemplos.
+
+Es *muy* importante actualizar el driver de la tarjeta gráfica de tu ordenador, para asegurarte de tener acceso a toda la capacidad del hardware.
+ 
