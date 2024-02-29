@@ -1,6 +1,3 @@
-// Que es mejor: volver a pasar sobre la misma linea o usar mas vertices y draw_lines?
-// Aspect ratio?
-// Ejemplos?
 #include <PGUPV.h>
 #include <iostream>
 #include <cmath>

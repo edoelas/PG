@@ -130,6 +130,7 @@ void MyRender::setup() {
 
 void MyRender::render() {
 	glClear(GL_COLOR_BUFFER_BIT);
+	auto cam = std::static_pointer_cast<XYPanZoomCamera>(getCameraHandler());
 
 	mats->setMatrix(GLMatrices::PROJ_MATRIX, getCamera().getProjMatrix());
 	mats->setMatrix(GLMatrices::VIEW_MATRIX, getCamera().getViewMatrix());
@@ -140,8 +141,10 @@ void MyRender::render() {
 	boundary->render();
 	ConstantUniformColorProgram::setColor(glm::vec4{ 1.0f, 1.0f, 1.0f, 1.0f });
 	exteriorMesh->render();
-	ConstantUniformColorProgram::setColor(glm::vec4{ 0.8f, 0.1f, 0.1f, 1.0f });
-	interiorMesh->render();
+	if (cam->getWidth() < 5000) {
+		ConstantUniformColorProgram::setColor(glm::vec4{ 0.8f, 0.1f, 0.1f, 1.0f });
+		interiorMesh->render();
+	}
 
 }
 
