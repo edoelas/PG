@@ -35,7 +35,7 @@ void MyRender::buildGUI() {
 	auto panel = addPanel("Location");
 	// Tamaño del panel y posición del panel
 	panel->setSize(260, 100);
-	panel->setPosition(530, 10);
+	panel->setPosition(0, 0);
 
 	panel->addWidget(std::make_shared<Label>("Cursor pos: "));
 	cursorPos = std::make_shared<Label>("");
@@ -53,9 +53,11 @@ bool MyRender::mouse_move(const MouseMotionEvent& me) {
 	auto cam = std::static_pointer_cast<XYPanZoomCamera>(getCameraHandler());
 	auto center = cam->getCenter();
 	auto viewportSize = glm::vec2{ cam->getWidth(), cam->getHeight() };
-
+	auto relPos = glm::vec2{me.x / float(windowSize.x) -0.5, -(me.y / float(windowSize.y) - 0.5) };
+	auto mousePos = glm::vec2{ center.x + viewportSize.x * relPos.x, center.y + viewportSize.y * relPos.y };
+	// 728136, 4373696
 	std::ostringstream os;
-	os << std::fixed << std::setprecision(2) << me.x << " " << me.y;
+	os << std::fixed << std::setprecision(2) << mousePos.x << " " << mousePos.y << "/n";
 	cursorPos->setText(os.str());
 	return false;
 }
