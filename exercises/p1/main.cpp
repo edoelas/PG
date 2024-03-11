@@ -2,7 +2,7 @@
 #include <PGUPV.h>
 #include <GUI3.h>
 #include <iomanip>
-#include "glmReader.h"
+#include "gmlReader.h"
 
 using namespace PGUPV;
 
@@ -67,7 +67,7 @@ void MyRender::setup() {
 	mats = GLMatrices::build();
 
 	buildGUI();
-	std::string fname = App::assetsDir() + "/data/A.ES.SDGC.BU.46900.buildingpart.gml";
+	std::string fname = App::assetsDir() + "/data/A.ES.SDGC.BU.46900.buildingpart.test.gml";
 	City city = readBuildings(fname, true);
 
 
