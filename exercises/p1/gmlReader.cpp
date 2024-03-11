@@ -1,11 +1,11 @@
-
+﻿
 #include <pugixml.hpp>
 #include <sstream>
 #include <map>
 #include <algorithm>
 #include <glm/common.hpp>
 
-#include "glmReader.h"
+#include "gmlReader.h"
 
 
 std::vector<glm::dvec2> parseCoordinates(const char* vals) {

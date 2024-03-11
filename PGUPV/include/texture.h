@@ -71,6 +71,17 @@ namespace PGUPV {
 		GLenum getCompareFunc(void) const { return _compareFunc; };
 
 		GLenum getInternalFormat() const { return _internalFormat; }
+
+		struct TextureLevelInfo {
+			GLint width, height, depth;
+			GLenum internalFormat;
+			GLint redSize, greenSize, blueSize, alphaSize, depthSize;
+			bool compressed;
+			GLint compressedImageSize;
+			GLint bufferOffset, bufferSize;
+		};
+
+		TextureLevelInfo getLevelInfo(GLint level) const;
 	protected:
 		void setTexParam(GLenum pname, GLint value);
 		void setTexParam(GLenum pname, const GLfloat* value);

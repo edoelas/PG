@@ -60,129 +60,144 @@ using glm::vec3;
 
 class MyRender : public Renderer {
 public:
-  MyRender() : cube(1.0f, glm::vec4(.7, .7, .7, 1.0)) {};
-  void setup(void) override;
-  void render(void) override;
-  void reshape(uint w, uint h) override;
+	MyRender() : cube(1.0f, glm::vec4(.7, .7, .7, 1.0)) {};
+	void setup(void) override;
+	void render(void) override;
+	void reshape(uint w, uint h) override;
 
 private:
-  Axes axes;
-  WireBox cube;
-  Program program;
-  std::shared_ptr<GLMatrices> mats;
+	Axes axes;
+	WireBox cube;
+	Disk disk;
+	Program program;
+	std::shared_ptr<GLMatrices> mats;
 
-  // Definimos una función donde creamos la interfaz (se podría hacer dentro de setup
-  // pero queda más limpio hacerlo aparte).
-  void buildGUI();
-  // Define aquí los widget que quieras consultar desde la función render
-  // Mostrar/ocultar los ejes
-  std::shared_ptr<CheckBoxWidget> showAxes;
-  // Tamaño del cubo
-  std::shared_ptr<FloatSliderWidget> cubeSize;
-  // Rotación del cubo
-  std::shared_ptr<RotationWidget> cubeRotation;
+	// Definimos una función donde creamos la interfaz (se podría hacer dentro de setup
+	// pero queda más limpio hacerlo aparte).
+	void buildGUI();
+	// Define aquí los widget que quieras consultar desde la función render
+	// Lista de objetos
+	std::shared_ptr<ListBoxWidget<>> objects;
+	// Mostrar/ocultar los ejes
+	std::shared_ptr<CheckBoxWidget> showAxes;
+	// Tamaño del cubo
+	std::shared_ptr<FloatSliderWidget> size;
+	// Rotación del cubo
+	std::shared_ptr<RotationWidget> rotation;
 };
 
 void MyRender::setup() {
-  program.addAttributeLocation(Mesh::VERTICES, "position");
-  program.addAttributeLocation(Mesh::COLORS, "vertcolor");
+	glClearColor(0.2f, 0.2f, 0.8f, 1.0f);
+	program.addAttributeLocation(Mesh::VERTICES, "position");
+	program.addAttributeLocation(Mesh::COLORS, "vertcolor");
 
-  // Construímos el objeto GLMatrices
-  mats = GLMatrices::build();
+	// Construímos el objeto GLMatrices
+	mats = GLMatrices::build();
 
-  // Conectamos el objeto mats con un índice de Uniform Buffer Object
-  // predeterminado
-  program.connectUniformBlock(mats, UBO_GL_MATRICES_BINDING_INDEX);
-  program.loadFiles(App::assetsDir() + "/shaders/constantshading");
-  program.compile();
+	// Conectamos el objeto mats con un índice de Uniform Buffer Object
+	// predeterminado
+	program.connectUniformBlock(mats, UBO_GL_MATRICES_BINDING_INDEX);
+	program.loadFiles(App::assetsDir() + "/shaders/constantshading");
+	program.compile();
 
-  // Construimos la interfaz:
-  buildGUI();
+	// Construimos la interfaz:
+	buildGUI();
 
-  // Por defecto la interfaz no se muestra (el usuario puede pulsar Ctrl+G para mostrarla)
-  // Podemos hacer que se muestre con:
-  App::getInstance().getWindow().showGUI(true);
+	// Por defecto la interfaz no se muestra (el usuario puede pulsar Ctrl+G para mostrarla)
+	// Podemos hacer que se muestre con:
+	App::getInstance().getWindow().showGUI(true);
 
-  program.use();
+	program.use();
 }
 
 void MyRender::render() {
-  glClear(GL_COLOR_BUFFER_BIT);
-  mats->setMatrix(GLMatrices::VIEW_MATRIX,
-    glm::lookAt(vec3(1, 1, 2), vec3(0, 0, 0), vec3(0, 1, 0)));
+	glClear(GL_COLOR_BUFFER_BIT);
+	mats->setMatrix(GLMatrices::VIEW_MATRIX,
+		glm::lookAt(vec3(1, 1, 2), vec3(0, 0, 0), vec3(0, 1, 0)));
 
-  // Para comprobar el contenido de un widget, tenemos que usar la función ->get()
-  if (showAxes->get())
-    axes.render();
+	// Para comprobar el contenido de un widget, tenemos que usar la función ->get()
+	if (showAxes->get())
+		axes.render();
 
-  mats->pushMatrix(GLMatrices::MODEL_MATRIX);
-  mats->setMatrix(GLMatrices::MODEL_MATRIX, cubeRotation->get());
-  mats->scale(GLMatrices::MODEL_MATRIX, glm::vec3(cubeSize->get()));
-  cube.render();
-  mats->popMatrix(GLMatrices::MODEL_MATRIX);
+	mats->pushMatrix(GLMatrices::MODEL_MATRIX);
+	mats->setMatrix(GLMatrices::MODEL_MATRIX, rotation->get());
+	mats->scale(GLMatrices::MODEL_MATRIX, glm::vec3(size->get()));
+	if (objects->getSelected() == 0)
+		cube.render();
+	else
+		disk.render();
+	mats->popMatrix(GLMatrices::MODEL_MATRIX);
 }
 
 void MyRender::reshape(uint w, uint h) {
-  glViewport(0, 0, w, h);
-  if (h == 0)
-    h = 1;
-  float ar = (float)w / h;
-  // Definimos una cámara perspectiva con la misma razón de aspecto que la
-  // ventana
-  mats->setMatrix(GLMatrices::PROJ_MATRIX,
-    glm::perspective(glm::radians(60.0f), ar, .1f, 10.0f));
+	glViewport(0, 0, w, h);
+	if (h == 0)
+		h = 1;
+	float ar = (float)w / h;
+	// Definimos una cámara perspectiva con la misma razón de aspecto que la
+	// ventana
+	mats->setMatrix(GLMatrices::PROJ_MATRIX,
+		glm::perspective(glm::radians(60.0f), ar, .1f, 10.0f));
 }
 
 void MyRender::buildGUI() {
-  // El primer paso es crear un Panel. Un Panel es el contenedor de los widgets
-  auto panel = addPanel("Ejemplo de GUI");
-  // Podemos definir su tamaño y posición
-  panel->setSize(340, 280); // Ancho, alto, en píxeles
-  panel->setPosition(15, 15); // Respecto la esquina superior izquierda
+	// El primer paso es crear un Panel. Un Panel es el contenedor de los widgets
+	auto panel = addPanel("Ejemplo de GUI");
+	// Podemos definir su tamaño y posición
+	panel->setSize(340, 280); // Ancho, alto, en píxeles
+	panel->setPosition(15, 15); // Respecto la esquina superior izquierda
 
-  // Añadiendo una etiqueta
-  panel->addWidget(std::make_shared<Label>("Una etiqueta..."));
+	// Añadiendo una etiqueta
+	panel->addWidget(std::make_shared<Label>("Una etiqueta..."));
 
-  // Un checkbox permite al usuario mostrar u ocultar los ejes. Necesitamos guardar
-  // la referencia a nivel de clase (showAxes es un miembro de la clase)
-  showAxes = std::make_shared<CheckBoxWidget>("Mostrar ejes", true); // Etiqueta y valor inicial
-  // Siempre hay que añadir el widget al panel 
-  panel->addWidget(showAxes);
+	// Un checkbox permite al usuario mostrar u ocultar los ejes. Necesitamos guardar
+	// la referencia a nivel de clase (showAxes es un miembro de la clase)
+	showAxes = std::make_shared<CheckBoxWidget>("Mostrar ejes", true); // Etiqueta y valor inicial
+	// Siempre hay que añadir el widget al panel 
+	panel->addWidget(showAxes);
 
-  // RGBAColorWidget permite al usuario definir un color RGBA
-  // Como no necesitamos el valor de esta variable fuera de esta función, la declaramos aquí:
-  auto backgroundColor = std::make_shared<RGBAColorWidget>("Color de fondo");
-  // Ahora queremos establecer el color de borrado de OpenGL cada vez que el usuario cambie el 
-  // color del widget. Para ello establecemos un listener (una función) que se ejecutará cada vez 
-  // que el valor cambie de valor. Usamos una lambda para definir la función.
-  backgroundColor->getValue().addListener([](glm::vec4 color) {
-    glClearColor(color.r, color.g, color.b, color.a); });
-  // No te olvides añadirlo al panel
-  panel->addWidget(backgroundColor);
+	// Un listbox muestra una lista de elementos y permite al usuario seleccionar uno.
+	// Un listbox contiene una lista de etiquetas (visible para el usuario, que las
+	// utiliza para seleccionar). Para ello, definimos un ListBoxWidget<>.
+	// Por otra parte, un listbox puede almacenar una segunda lista, que no es visible y 
+	// que contiene un valor asociado a cada etiqueta (p.e., ListBoxWidget<float>).
+	objects = std::make_shared<ListBoxWidget<>>("Objetos", std::vector<std::string>{"Cubo", "Disco"});
+	panel->addWidget(objects);
 
-  // Un separador
-  panel->addWidget(std::make_shared<Separator>());
+	// RGBAColorWidget permite al usuario definir un color RGBA
+	// Como no necesitamos el valor de esta variable fuera de esta función, la declaramos aquí:
+	auto backgroundColor = std::make_shared<RGBAColorWidget>("Color de fondo");
+	// Ahora queremos establecer el color de borrado de OpenGL cada vez que el usuario cambie el 
+	// color del widget. Para ello establecemos un listener (una función) que se ejecutará cada vez 
+	// que el valor cambie de valor. Usamos una lambda para definir la función.
+	backgroundColor->getValue().addListener([](glm::vec4 color) {
+		glClearColor(color.r, color.g, color.b, color.a); });
+	// No te olvides añadirlo al panel
+	panel->addWidget(backgroundColor);
 
-  // Este FloatSliderWidget define el factor de escala del cubo
-  cubeSize = std::make_shared<FloatSliderWidget>("Tamaño", 1.0f, 0.1f, 2.0f);
-  panel->addWidget(cubeSize);
+	// Un separador
+	panel->addWidget(std::make_shared<Separator>());
 
-  // Un RotationWidget permite definir una rotación
-  cubeRotation = std::make_shared<RotationWidget>("Rotación");
-  panel->addWidget(cubeRotation);
+	// Este FloatSliderWidget define el factor de escala del cubo
+	size = std::make_shared<FloatSliderWidget>("Tamaño", 1.0f, 0.1f, 2.0f);
+	panel->addWidget(size);
 
-  // Un botón para resetear el tamaño y rotación del cubo
-  panel->addWidget(std::make_shared<Button>("Reset",
-    [this]() { // Esta lambda captura el puntero this...
-      cubeSize->set(1.0f);              // para poder acceder a las variables miembro
-      cubeRotation->set(glm::mat4(1.0f));
-  }));
+	// Un RotationWidget permite definir una rotación
+	rotation = std::make_shared<RotationWidget>("Rotación");
+	panel->addWidget(rotation);
+
+	// Un botón para resetear el tamaño y rotación del cubo
+	panel->addWidget(std::make_shared<Button>("Reset",
+		[this]() { // Esta lambda captura el puntero this...
+			size->set(1.0f);              // para poder acceder a las variables miembro
+			rotation->set(glm::mat4(1.0f));
+		}));
 }
 
-int main(int argc, char *argv[]) {
-  App &myApp = App::getInstance();
-  myApp.setInitWindowSize(800, 600);
-  myApp.initApp(argc, argv, PGUPV::DOUBLE_BUFFER | PGUPV::DEPTH_BUFFER);
-  myApp.getWindow().setRenderer(std::make_shared<MyRender>());
-  return myApp.run();
+int main(int argc, char* argv[]) {
+	App& myApp = App::getInstance();
+	myApp.setInitWindowSize(800, 600);
+	myApp.initApp(argc, argv, PGUPV::DOUBLE_BUFFER | PGUPV::DEPTH_BUFFER);
+	myApp.getWindow().setRenderer(std::make_shared<MyRender>());
+	return myApp.run();
 }

@@ -120,7 +120,7 @@ void MyRender::buildGUI() {
   // Este vector tendrá un booleano para cada entrada de 'sources', indicando si es un
   // un vídeo (true) o una cámara (false)
   std::vector<bool> sourcesIsVideo(sources.size(), false);
-  auto videos = PGUPV::listFiles("../recursos/videos/", false);
+  auto videos = PGUPV::listFiles(App::assetsDir() + "videos/", false);
   for (const auto &v : videos) {
 	  sources.push_back(v);
 	  sourcesIsVideo.push_back(true);
@@ -142,6 +142,7 @@ void MyRender::buildGUI() {
   });
   sourcesList->setUserData(sourcesIsVideo);
   panel->addWidget(sourcesList);
+  sourcesList->setEmptySelection(false);
   sourcesList->setSelected(0);
 }
 

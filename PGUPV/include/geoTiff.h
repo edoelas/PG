@@ -27,8 +27,8 @@ namespace PGUPV {
 		};
 		GeodeticCRSGeoKey  geodeticCRSGeoKey{ GeodeticCRSGeoKey::Unknown };
 		struct TiePoint {
-			glm::vec3 imagePoint;
-			glm::vec3 modelPoint;
+			glm::dvec3 imagePoint;
+			glm::dvec3 modelPoint;
 		};
 		enum class GeoAngularUnitsGeoKey {
 			Unknown,		// http://geotiff.maptools.org/spec/geotiff6.html#6.3.1.4
@@ -70,7 +70,7 @@ namespace PGUPV {
 		 * with a triangle fan)
 		 * @return 
 		*/
-		std::vector<glm::vec3> corners() const;
+		std::vector<glm::dvec3> corners() const;
 		/**
 		 * @brief Returns the bounding box of the image in world coordinates
 		 * @return

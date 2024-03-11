@@ -35,7 +35,7 @@ namespace PGUPV {
 		\param labels Si está presente, es la etiqueta que se mostrará para cada componente
 		*/
 		IVecSliderWidget(const std::string &label, const V &value, typename V::value_type min, typename V::value_type max) :
-			value(value), min(min), max(max), displayFormat("%.0f") {
+			value(value), min(min), max(max), displayFormat("%d") {
 			setLabel(label);
 		};
 

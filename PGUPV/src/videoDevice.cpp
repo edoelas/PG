@@ -34,7 +34,7 @@ const float VideoDevice::MAX_FPS = 1e6f;
 VideoDevice::VideoDevice(unsigned int camId, unsigned int optsId, float fps) :
 	camera_index(camId) {
 	auto opts = listOptions(camId);
-	
+
 	auto opt = opts.begin();
 	for (uint i = 0; opt != opts.end() && i < optsId; i++) {
 		opt++;
@@ -46,19 +46,19 @@ VideoDevice::VideoDevice(unsigned int camId, unsigned int optsId, float fps) :
 	size_req = opt->second.size;
 	fps_req = fps == MAX_FPS ? opt->second.maxfps : fps;
 	init();
-    INFO("VideoDevice creado (cámara " + std::to_string(camId) + ") " + std::to_string(reinterpret_cast<std::uint64_t>(this)));
+	INFO("VideoDevice creado (cámara " + std::to_string(camId) + ") " + std::to_string(reinterpret_cast<std::uint64_t>(this)));
 }
 
 
-VideoDevice::VideoDevice(unsigned int index, const std::string & pixfmtCodec, const std::string & size, float fps)
+VideoDevice::VideoDevice(unsigned int index, const std::string& pixfmtCodec, const std::string& size, float fps)
 	:fps_req(fps), size_req(size), pixfmtCodec_req(pixfmtCodec), camera_index(index)
 {
 	init();
-    INFO("VideoDevice creado (cámara " + std::to_string(index) + ") " + std::to_string(reinterpret_cast<std::uint64_t>(this)));
+	INFO("VideoDevice creado (cámara " + std::to_string(index) + ") " + std::to_string(reinterpret_cast<std::uint64_t>(this)));
 }
 
 VideoDevice::~VideoDevice() {
-  INFO("VideoDevice destruído " + std::to_string(reinterpret_cast<std::uint64_t>(this)));
+	INFO("VideoDevice destruído " + std::to_string(reinterpret_cast<std::uint64_t>(this)));
 }
 
 void VideoDevice::init() {
@@ -74,8 +74,8 @@ void VideoDevice::init() {
 
 #ifdef _WIN32
 
-void runFFMPEG(const std::string &params, const std::string &outputFile) {
-	if (!PGUPV::fileExists("../bin/ffmpeg.exe")) {
+void runFFMPEG(const std::string& params, const std::string& outputFile) {
+	if (!PGUPV::fileExists("ffmpeg.exe")) {
 		ERRT("No se ha encontrado el ejecutable ffmpeg.exe en el directorio bin");
 	}
 
@@ -179,53 +179,40 @@ std::multimap<std::string, VideoDevice::Range> VideoDevice::listOptions(unsigned
 	return options;
 }
 
-void findAvailableCameras(std::vector<std::string> &list) {
+void findAvailableCameras(std::vector<std::string>& list) {
 	const std::string tmpFileName = "_ffmpeg.txt";
 
 	runFFMPEG("-f dshow -list_devices true -i dummy", tmpFileName);
 
 	std::ifstream f(tmpFileName);
-	bool recording = false;
 	list.clear();
 	while (f) {
 		std::string s;
 		std::getline(f, s);
-		if (recording) {
-			if (s.find("DirectShow audio devices") != std::string::npos) {
-				recording = false;
-				break;
+		auto b = s.find_last_of("[dshow");
+		if (b != std::string::npos && s.find("(video)") != std::string::npos && s.find("Alternative name") == std::string::npos) {
+			auto fq = s.find("\"");
+			auto lq = s.find_last_of("\"");
+			if (fq == std::string::npos || lq == std::string::npos) {
+				ERRT("La lista de cámaras no está en el formato esperado");
 			}
-			else {
-				if (s.find("none found") != std::string::npos) break;
-				auto b = s.find_last_of("[dshow");
-				if (b != std::string::npos && s.find("Alternative name") == std::string::npos) {
-					auto fq = s.find("\"");
-					auto lq = s.find_last_of("\"");
-					if (fq == std::string::npos || lq == std::string::npos) {
-						ERRT("La lista de cámaras no está en el formato esperado");
-					}
-					fq++;
-					list.push_back(s.substr(fq, lq - fq));
-				}
-			}
+			fq++;
+			list.push_back(s.substr(fq, lq - fq));
 		}
-		if (s.find("DirectShow video devices") != std::string::npos)
-			recording = true;
 	}
-
 }
 #elif __APPLE__
-void findAvailableCameras(std::vector<std::string> &list) {
+void findAvailableCameras(std::vector<std::string>& list) {
 	const std::string tmpFile = "_ffmpeg.txt";
-    
-    std::string ffmpegPath;
-    if (!App::getInstance().getProperty(App::PROP_FFMPEG_EXEC_PATH, ffmpegPath))
-        ffmpegPath = "/usr/local/bin/ffmpeg";
-    
-    int res = system((ffmpegPath + " -f avfoundation -list_devices true -i \"\" 2> " + tmpFile).c_str());
-    if (!WIFEXITED(res)) {
+
+	std::string ffmpegPath;
+	if (!App::getInstance().getProperty(App::PROP_FFMPEG_EXEC_PATH, ffmpegPath))
+		ffmpegPath = "/usr/local/bin/ffmpeg";
+
+	int res = system((ffmpegPath + " -f avfoundation -list_devices true -i \"\" 2> " + tmpFile).c_str());
+	if (!WIFEXITED(res)) {
 		ERRT("No se ha encontrado la librería ffmpeg. Por favor, instálala, o indica su ruta en el fichero de propiedades"
-             ", por ejemplo: ffmpeg_exec_path=/usr/local/bin/ffmpeg");
+			", por ejemplo: ffmpeg_exec_path=/usr/local/bin/ffmpeg");
 	}
 	std::ifstream f(tmpFile);
 	bool recording = false;
@@ -239,8 +226,8 @@ void findAvailableCameras(std::vector<std::string> &list) {
 				break;
 			}
 			else {
-                // Ignoramos la cámara virtual de captura de la pantalla
-                if (s.find("Capture screen") != std::string::npos) continue;
+				// Ignoramos la cámara virtual de captura de la pantalla
+				if (s.find("Capture screen") != std::string::npos) continue;
 				auto b = s.find_last_of("]");
 				if (b != std::string::npos) {
 					list.push_back(s.substr(b + 2));
@@ -249,36 +236,36 @@ void findAvailableCameras(std::vector<std::string> &list) {
 		}
 		if (s.find("AVFoundation video devices:") != std::string::npos)
 			recording = true;
-        else if (s.find("command not found") != std::string::npos) {
-            ERRT("No se ha encontrado la librería ffmpeg. Por favor, instálala, o indica su ruta en el fichero de propiedades"
-                 ", por ejemplo: ffmpeg_exec_path=/usr/local/bin/ffmpeg");
-        }
+		else if (s.find("command not found") != std::string::npos) {
+			ERRT("No se ha encontrado la librería ffmpeg. Por favor, instálala, o indica su ruta en el fichero de propiedades"
+				", por ejemplo: ffmpeg_exec_path=/usr/local/bin/ffmpeg");
+		}
 	}
 }
 
 
 
 std::multimap<std::string, VideoDevice::Range> VideoDevice::listOptions(unsigned int camera) {
-    
-    // En MAC estamos devolviendo a piñón un formato estándar, indpendientemente de la cámara.
-    // Si alguien se anima a obtener los modos de la cámara, tal y como se hace en Windows, que contacte conmigo
-    
-    std::multimap<std::string, VideoDevice::Range> result;
-    VideoDevice::Range r;
-    r.minfps = r.maxfps = 30;
-    r.size = "640x480";
-    result.insert(std::pair<std::string, VideoDevice::Range>("pixel_format=uyvy422", r));
-    return result;
+
+	// En MAC estamos devolviendo a piñón un formato estándar, indpendientemente de la cámara.
+	// Si alguien se anima a obtener los modos de la cámara, tal y como se hace en Windows, que contacte conmigo
+
+	std::multimap<std::string, VideoDevice::Range> result;
+	VideoDevice::Range r;
+	r.minfps = r.maxfps = 30;
+	r.size = "640x480";
+	result.insert(std::pair<std::string, VideoDevice::Range>("pixel_format=uyvy422", r));
+	return result;
 }
 
 
 #else // Linux
 // http://stackoverflow.com/questions/4290834/how-to-get-a-list-of-video-capture-devices-web-cameras-on-linux-ubuntu-c
-void findAvailableCameras(std::vector<std::string> &/*list*/) {
+void findAvailableCameras(std::vector<std::string>&/*list*/) {
 
 	ERRT("Funcionalidad en desarrollo. Habla con Paco");
 
-    /*
+	/*
 	auto l = listLinks("/sys/class/video4linux", false);
 	list.clear();
 	for (auto c : l) {
@@ -291,7 +278,7 @@ void findAvailableCameras(std::vector<std::string> &/*list*/) {
 			list.push_back(cameraName);
 		}
 	}
-     */
+	 */
 }
 
 
@@ -299,9 +286,9 @@ std::multimap<std::string, VideoDevice::Range> VideoDevice::listOptions(unsigned
 
 	ERRT("Funcionalidad en desarrollo. Habla con Paco");
 
-    std::multimap<std::string, VideoDevice::Range> options;
-    
-    /*
+	std::multimap<std::string, VideoDevice::Range> options;
+
+	/*
 	const std::string tmpFileName = "_ffmpeg.txt";
 
 	std::string cmd("v4l2-ctl -d /dev/video" + std::to_string(camera) + " --list-formats-ext > " + tmpFileName);
@@ -426,7 +413,7 @@ void VideoDevice::initializeLibAv() {
 
 void VideoDevice::openDevice(unsigned int index) {
 
-	AVDictionary *options = nullptr;
+	AVDictionary* options = nullptr;
 	av_dict_set(&options, "framerate", std::to_string(fps_req).c_str(), 0);
 	av_dict_set(&options, "video_size", size_req.c_str(), 0);
 	auto eqIdx = pixfmtCodec_req.find("=");
@@ -442,7 +429,7 @@ void VideoDevice::openDevice(unsigned int index) {
 		ERRT("Esa cámara no existe");
 
 	// First, we will try to use dshow
-	const AVInputFormat *ifmt = av_find_input_format("dshow");
+	const AVInputFormat* ifmt = av_find_input_format("dshow");
 	//Set own video device's name
 	if (avformat_open_input(&pFormatCtx, ("video=" + availableCameras[index]).c_str(), ifmt, &options) != 0) {
 
@@ -457,7 +444,7 @@ void VideoDevice::openDevice(unsigned int index) {
 	if (index >= availableCameras.size())
 		ERRT("Esa cámara no existe");
 	//Linux
-	AVInputFormat *ifmt = av_find_input_format("video4linux2");
+	AVInputFormat* ifmt = av_find_input_format("video4linux2");
 	if (avformat_open_input(&pFormatCtx, availableCameras[index].c_str(), ifmt, &options) != 0) {
 		ERRT("No se ha podido abrir la cámara " + availableCameras[index]);
 	}
@@ -465,7 +452,7 @@ void VideoDevice::openDevice(unsigned int index) {
 
 #else
 	//Mac
-	AVInputFormat *ifmt = av_find_input_format("avfoundation");
+	AVInputFormat* ifmt = av_find_input_format("avfoundation");
 	//Avfoundation
 	//[video]:[audio]
 	if (avformat_open_input(&pFormatCtx, std::to_string(index).c_str(), ifmt, &options) != 0) {
@@ -475,7 +462,7 @@ void VideoDevice::openDevice(unsigned int index) {
 
 #endif
 	// Ignored options
-	AVDictionaryEntry *t = nullptr;
+	AVDictionaryEntry* t = nullptr;
 	while ((t = av_dict_get(options, "", t, AV_DICT_IGNORE_SUFFIX)) != nullptr) {
 
 		WARN(std::string("Opción no reconocida por la cámara: ") + t->key + "=" + t->value);
