@@ -116,7 +116,10 @@ void MyRender::buildGUI() {
 
   // Listado de todas las cámaras encontradas en el sistema, y todos los ficheros
   // que se encuentren en ../recursos/videos/
-  auto sources = media::VideoDevice::getAvailableCameras();
+  auto cams = media::VideoDevice::getAvailableCameras();
+  std::vector<std::string> sources;
+  std::transform(cams.begin(), cams.end(), std::back_inserter(sources),
+	  [](const media::VideoDevice::CameraInfo& c) { return c.name; });
   // Este vector tendrá un booleano para cada entrada de 'sources', indicando si es un
   // un vídeo (true) o una cámara (false)
   std::vector<bool> sourcesIsVideo(sources.size(), false);

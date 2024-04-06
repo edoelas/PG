@@ -17,9 +17,9 @@ Usa las clases Model y Mesh de PGUPV.
 
 class MyRender : public Renderer {
 public:
-	void setup(void);
-	void render(void);
-	void reshape(uint w, uint h);
+	void setup(void) override;
+	void render(void) override;
+	void reshape(uint w, uint h) override;
 private:
 	std::shared_ptr<Model> model;
 };

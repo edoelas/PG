@@ -20,8 +20,8 @@ TextureVideo::TextureVideo(const std::string &path) : status(Status::PLAYING), u
 }
 
 
-TextureVideo::TextureVideo(int camId, int confId, float fps) : status(Status::PLAYING), updateCallbackId(static_cast<size_t>(-1)) {
-	media = std::unique_ptr<VideoDevice>(new VideoDevice(camId, confId, fps));
+TextureVideo::TextureVideo(int camId, int confId) : status(Status::PLAYING), updateCallbackId(static_cast<size_t>(-1)) {
+	media = std::unique_ptr<VideoDevice>(new VideoDevice(camId, confId));
 	init();
 	INFO("Nuevo TextureVideo (Cámara " + std::to_string(camId) + ") " + std::to_string(reinterpret_cast<std::uint64_t>(this)));
 }

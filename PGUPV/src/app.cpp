@@ -53,6 +53,8 @@ const char *App::PROP_FFMPEG_EXEC_PATH = "ffmpeg_exec_path";
 
 uint64_t App::_elapsed = 0;
 
+using namespace std::string_literals;
+
 #ifdef _MSC_VER 
 
 extern "C" {
@@ -522,23 +524,28 @@ int App::getWindowIndex(const Window * w) const
 	return -1;
 }
 
-std::string PGUPV::App::examplesDir()
+std::string App::examplesDir()
 {
-	return std::string("../examples/");
+	return "../examples/"s;
 }
 
-std::string PGUPV::App::assetsDir()
+std::string App::assetsDir()
 {
 #ifdef PG_TESTING
-	return std::string("../../pgupv/assets/");
+	return "../../pgupv/assets/"s;
 #else
-	return std::string("../assets/");
+	return "../assets/"s;
 #endif
 }
 
-std::string PGUPV::App::solsDir()
+std::string App::solsDir()
 {
-	return std::string("../../sols/");
+	return "../../sols/"s;
+}
+
+std::string App::exercisesDir()
+{
+	return "../exercises/"s;
 }
 
 void App::processEvents() {

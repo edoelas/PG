@@ -10,42 +10,33 @@ namespace media {
 	class VideoDevice : public Media {
 	public:
 		// Abre la cámara con la configuración indicada
-		VideoDevice(unsigned int camId, unsigned int optsId = 0, float fps = MAX_FPS);
-		// Abre la cámara indicada con las opciones indicadas
-		VideoDevice(unsigned int index, const std::string &pixfmtCodec, const std::string &size, float fps);
-        ~VideoDevice();
-		/**
-		Devuelve una lista con el nombre de las cámaras disponibles
-		\warning Ahora mismo llama al ejecutable de ffmpeg para obtener el listado, porque la API de 
-		libavdevice no devuelve los dispositivos de dshow. No funciona en Linux de momento.
-		https://stackoverflow.com/questions/51991436/how-to-get-directshow-device-list-with-ffmpeg-in-c
-		*/
-		static const std::vector<std::string> getAvailableCameras();
+		VideoDevice(unsigned int camId, unsigned int optsId = 0);
+		~VideoDevice();
 
-		struct Range {
-			std::string size;
-			float minfps, maxfps;
+		struct VideoFormat {
+			uint32_t width;     ///< width in pixels
+			uint32_t height;    ///< height in pixels
+			std::string fourcc;    ///< fourcc code (platform dependent)
+			uint32_t fps;       ///< frames per second
+			uint32_t bpp;       ///< bits per pixel
 		};
 
-		typedef std::multimap<std::string, Range> Options;
-		// Devuelve las opciones disponibles para configurar la cámara indicada
-		static Options listOptions(unsigned int camera);
-		// Constante que indica usar la velocidad mayor
-		static const float MAX_FPS;
+		struct CameraInfo {
+			std::string name;
+			std::string devicePath;
+			std::vector<VideoFormat> formats;
+		};
+
+		/**
+			Devuelve una lista con el nombre de las cámaras disponibles
+		*/
+		static std::vector<CameraInfo> getAvailableCameras();
+
 	private:
 		static bool libavInitialized;
-		static std::vector<std::string> availableCameras;
 		static void initializeLibAv();
-		static std::vector<Options> cameraOptions;
 
-		void init();
-
-		void openDevice(unsigned int index);
-        // Requested parameters
-        float fps_req;
-		std::string size_req;
-        std::string pixfmtCodec_req;
-		unsigned int camera_index;
-
+		void init(const CameraInfo &ci, size_t optionId);
+		void openDevice(const CameraInfo& ci, size_t optionId);
 	};
 };

@@ -102,6 +102,12 @@ add_library(par_lib INTERFACE)
 target_include_directories(par_lib INTERFACE ${par_SOURCE_DIR})
 
 
+add_subdirectory(openpnp-capture)
+# set the include dir
+target_include_directories(openpnp-capture PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/openpnp-capture/include>)
+
+
+
 if (MSVC)
 add_library(GLEW STATIC glew-2.2.0/src/glew.c)
 target_include_directories(GLEW PUBLIC glew-2.2.0/include)
@@ -154,10 +160,10 @@ set(EXTRA_LIBS ${FFMPEG_LIBRARIES} SDL2 SDL2_ttf)
 endif()
 
 add_library(PG-deps INTERFACE)
-target_link_libraries(PG-deps INTERFACE assimp::assimp freeimage nlohmann_json::nlohmann_json gli_lib ${EXTRA_LIBS} par_lib)
+target_link_libraries(PG-deps INTERFACE assimp::assimp freeimage nlohmann_json::nlohmann_json gli_lib ${EXTRA_LIBS} par_lib openpnp-capture)
 
 add_library(PG-public-deps INTERFACE)
-target_link_libraries(PG-deps INTERFACE glm::glm)
+target_link_libraries(PG-public-deps INTERFACE glm::glm GLEW guipg Microsoft.GSL::GSL)
 
 set(imdir ${imgui_SOURCE_DIR})
 
@@ -168,7 +174,7 @@ target_link_libraries(dearimgui PRIVATE SDL2::SDL2)
 
 if (MSVC)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
-set_target_properties(assimp gli_dummy glm dearimgui GLEW sdl_headers_copy SDL2 SDL2_ttf SDL2main SDL2-static uninstall zlibstatic UpdateAssimpLibsDebugSymbolsAndDLLs PROPERTIES FOLDER "deps")
+set_target_properties(assimp gli_dummy glm dearimgui GLEW sdl_headers_copy SDL2 SDL2_ttf SDL2main SDL2-static uninstall zlibstatic UpdateAssimpLibsDebugSymbolsAndDLLs openpnp-capture openpnp-capture-test PROPERTIES FOLDER "deps")
 set_target_properties(PROPERTIES FOLDER "deps")
 set_target_properties(PROPERTIES FOLDER "deps")
 #set_target_properties(glm_shared PROPERTIES FOLDER "deps")

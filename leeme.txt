@@ -10,12 +10,15 @@ Windows
 -------
 
 * Requisitos:
-Sólo necesitas tener instalado el Visual Studio 2022, junto con el paquete de soporte de C++ y desarrollo nativo.
+Para hacer las prácticas en Windows, necesitas:
+-Visual Studio 2022 (cualquier versión), junto con el paquete de soporte de C++ y desarrollo nativo.
+-Cmake (https://cmake.org/download/)
+-Git (https://git-scm.com/download/win)
+
 Es *muy* importante actualizar el driver de la tarjeta gráfica de tu ordenador, para asegurarte de tener acceso a toda la capacidad del hardware.
 
 * Prácticas:
-El paquete de las prácticas contiene todas las bibliotecas necesarias, y también se baja algunas la primera vez. Hay que usar CMake para construir los ficheros de la solución de Visual Studio.
-Para ello, instala CMake desde https://cmake.org/download/) y sigue los siguientes pasos:
+El paquete de las prácticas contiene todas las bibliotecas necesarias, y también se baja algunas la primera vez. Hay que usar CMake para construir los ficheros de la solución de Visual Studio. Sigue los siguientes pasos:
 
 1. Baja el código de las prácticas, usando git o bajando el ZIP desde la página de Github (https://github.com/fjabad/pgupv.git)
 2. Si usas el interfaz gráfico de CMake (cmake-gui), sigue leyendo. Si prefieres usar la consola, lee las instrucciones de Linux más abajo.
@@ -43,7 +46,7 @@ sudo apt install build-essential git cmake libfreeimage-dev libfreetype-dev pkg-
 
 
 1. Baja el código de las prácticas, usando git o bajando el ZIP desde la página de Github.
-2. Si vas a usar Visual Studio COde, instala el soporte de C++ y CMake y abre el directorio raíz (el que contiene este fichero). Si prefieres la consola:
+2. Si vas a usar Visual Studio Code, instala el soporte de C++ y CMake y abre el directorio raíz (el que contiene este fichero). Si prefieres la consola:
 
 git clone https://github.com/fjabad/pgupv.git
 cd pgupv

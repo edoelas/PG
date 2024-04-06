@@ -363,6 +363,7 @@ namespace PGUPV {
 	static std::string examplesDir();
 	static std::string assetsDir();
 	static std::string solsDir();
+	static std::string exercisesDir();
   private:
     void processEvents();
     void update(uint64_t elapsedMs);

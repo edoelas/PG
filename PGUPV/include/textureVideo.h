@@ -33,7 +33,7 @@ namespace PGUPV {
     media::VideoDevice::listOptions
     \param fps indica el número de frames a capturar por segundo.
     */
-    TextureVideo(int camId = 0, int confId = 0, float fps = media::VideoDevice::MAX_FPS);
+    TextureVideo(int camId = 0, int confId = 0);
     ~TextureVideo();
     // Prohibimos copia
     TextureVideo(const TextureVideo &) = delete;

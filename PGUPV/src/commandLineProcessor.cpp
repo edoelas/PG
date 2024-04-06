@@ -213,7 +213,7 @@ static void processListCameras() {
 	const auto cameras = media::VideoDevice::getAvailableCameras();
 	int i = 0;
 	for (auto c : cameras) {
-		std::cout << "[" << i++ << "] " << c << std::endl;
+		std::cout << "[" << i++ << "] " << c.name << std::endl;
 	}
 	exit(0);
 }
@@ -243,15 +243,15 @@ static void processListCameraOpts(std::list<std::string> &args) {
 
 	unsigned int idx = std::stoi(args.front());
 	
-	if (idx >= media::VideoDevice::getAvailableCameras().size()) {
+	auto cams = media::VideoDevice::getAvailableCameras();
+	if (idx >= cams.size()) {
 		ERRT("Identificador de cámara no válido");
 	}
 
-	auto opts = media::VideoDevice::listOptions(idx);
 	int i = 0;
-	for (auto o : opts) {
-		std::cout << "[" << i++ << "] " << o.first << " " << o.second.size
-			<< " " << o.second.minfps << "-" << o.second.maxfps << std::endl;
+	for (auto c : cams[idx].formats) {
+		std::cout << "[" << i++ << "] " << c.fourcc << " " << c.width << "x" << c.height
+			<< " " << c.bpp << " bpp " << c.fps << " fps\n";
 	}
 	exit(0);
 }

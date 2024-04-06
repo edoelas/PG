@@ -6,4 +6,4 @@ target_sources(PGUPV PRIVATE ${SRCS})
 
 target_include_directories(PGUPV PUBLIC include/)
 target_link_libraries(PGUPV PRIVATE PG-deps)
-target_link_libraries(PGUPV PUBLIC glm::glm GLEW guipg Microsoft.GSL::GSL)
+target_link_libraries(PGUPV PUBLIC PG-public-deps)
