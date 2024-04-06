@@ -32,7 +32,7 @@ private:
 	std::vector<std::string> neighbourhoodsNames;
 	// UI
 	std::shared_ptr<Label> cursorPos;
-	std::shared_ptr<ListBoxWidget> neighbourhoodWidget;
+	std::shared_ptr<ListBoxWidget<>> neighbourhoodWidget;
 	glm::uvec2 windowSize{ 0 };
 
 	Axes axes;
@@ -54,6 +54,8 @@ void MyRender::buildGUI() {
 	panel->addWidget(cursorPos);
 
 	// Mostramos la lista de barrios usando ListBoxWidget
+	neighbourhoodWidget = std::make_shared<ListBoxWidget<>>("Neightbourhood Names", neighbourhoodsNames);
+	panel->addWidget(neighbourhoodWidget);
 
 	App::getInstance().getWindow().showGUI(true);
 }
@@ -168,15 +170,15 @@ void MyRender::setupNeighbourhoods(std::string path) {
 void MyRender::setup() {
 	glClearColor(0.6f, 0.6f, 0.9f, 1.0f);
 	mats = GLMatrices::build();
-	buildGUI();
 	
 	setupBuildings(App::assetsDir() + "/data/A.ES.SDGC.BU.46900.buildingpart.test.gml");
 	setupNeighbourhoods(App::assetsDir() + "/data/barris-barrios.kml");
 	setupBounds();
 
-
 	auto center = glm::vec3{ (city_file.min.x + city_file.max.x) / 2, (city_file.min.y + city_file.max.y) / 2, 0.0f };
 	setCameraHandler(std::make_shared<XYPanZoomCamera>(1000.0f, center));
+	
+	buildGUI();
 }
 
 void MyRender::render() {
