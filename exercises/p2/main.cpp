@@ -19,14 +19,20 @@ private:
 	void setupBuildings(std::string path);
 	void setupNeighbourhoods(std::string path);
 	void setupBounds();
+
+	// files
+	City city_file;
+	KMLFile neighbourhood_file;
+	// OGL
 	std::shared_ptr<GLMatrices> mats;
-	City city;
-	KMLFile neighbourhood;
 	std::unique_ptr<PGUPV::Mesh> boundary;
 	std::unique_ptr<PGUPV::Mesh> exteriorMesh;
 	std::unique_ptr<PGUPV::Mesh> interiorMesh;
 	std::unique_ptr<PGUPV::Mesh> neighbourhoods;
+	std::vector<std::string> neighbourhoodsNames;
+	// UI
 	std::shared_ptr<Label> cursorPos;
+	std::shared_ptr<ListBoxWidget> neighbourhoodWidget;
 	glm::uvec2 windowSize{ 0 };
 
 	Axes axes;
@@ -46,6 +52,8 @@ void MyRender::buildGUI() {
 	panel->addWidget(std::make_shared<Label>("Cursor pos: "));
 	cursorPos = std::make_shared<Label>("");
 	panel->addWidget(cursorPos);
+
+	// Mostramos la lista de barrios usando ListBoxWidget
 
 	App::getInstance().getWindow().showGUI(true);
 }
@@ -69,7 +77,7 @@ bool MyRender::mouse_move(const MouseMotionEvent& me) {
 }
 
 void MyRender::setupBuildings( std::string path) {
-	city = readBuildings(path, true);
+	city_file = readBuildings(path, true);
 
 	exteriorMesh = std::make_unique<Mesh>();
 	std::vector<glm::vec3> exteriorVertices;
@@ -83,7 +91,7 @@ void MyRender::setupBuildings( std::string path) {
 	std::vector<GLsizei> interiorCount;
 	int interiorCounter = 0;
 
-	for (const Building& building : city.buildings) {
+	for (const Building& building : city_file.buildings) {
 		for (const BuildingPart& part : building.parts) {
 			// exterior
 			exteriorFirst.push_back(exteriorCounter);
@@ -121,13 +129,40 @@ void MyRender::setupBuildings( std::string path) {
 
 void MyRender::setupBounds() {
 	boundary = std::make_unique<PGUPV::Mesh>();
-	boundary->addVertices({ city.min, glm::vec2{city.max.x, city.min.y}, city.max, glm::vec2{city.min.x, city.max.y} });
+	boundary->addVertices({ city_file.min, glm::vec2{city_file.max.x, city_file.min.y}, city_file.max, glm::vec2{city_file.min.x, city_file.max.y} });
 	boundary->setColor(glm::vec4{ 0.8f, 0.1f, 0.1f, 1.0f });
 	boundary->addDrawCommand(new PGUPV::DrawArrays(GL_LINE_LOOP, 0, 4));
 }
 
 void MyRender::setupNeighbourhoods(std::string path) {
-	neighbourhood = readNeighborhood(App::assetsDir() + "/data/barris-barrios.kml");
+	neighbourhood_file = readNeighborhood(App::assetsDir() + "/data/barris-barrios.kml");
+
+	neighbourhoods = std::make_unique<PGUPV::Mesh>();
+	std::vector<glm::vec3> vertices;
+	std::vector<GLint> first;
+	std::vector<GLsizei> count;
+	int counter = 0;
+
+	for (const auto& polygon : neighbourhood_file.placemarks) {
+		first.push_back(counter);
+		for (const auto& point : polygon.geometry) {
+			for (const auto& vertex : point.outerBoundary) {
+				vertices.push_back(glm::vec3{ vertex.x, vertex.y, 0.0f });
+				counter++;
+			}
+		}
+		count.push_back(counter - first.back());
+	}
+
+	neighbourhoods->addVertices(vertices);
+	neighbourhoods->addDrawCommand(new MultiDrawArrays(GL_LINE_LOOP, first.data(), count.data(), first.size()));
+	neighbourhoods->setColor(glm::vec4{ 0.8f, 0.1f, 0.1f, 1.0f });
+
+	neighbourhoodsNames = std::vector<std::string>(neighbourhood_file.placemarks.size());
+	for (size_t i = 0; i < neighbourhood_file.placemarks.size(); i++) {
+		neighbourhoodsNames[i] = std::get<std::string>(neighbourhood_file.placemarks[i].attributes["nombre"]);
+	}
+	
 }
 
 void MyRender::setup() {
@@ -140,7 +175,7 @@ void MyRender::setup() {
 	setupBounds();
 
 
-	auto center = glm::vec3{ (city.min.x + city.max.x) / 2, (city.min.y + city.max.y) / 2, 0.0f };
+	auto center = glm::vec3{ (city_file.min.x + city_file.max.x) / 2, (city_file.min.y + city_file.max.y) / 2, 0.0f };
 	setCameraHandler(std::make_shared<XYPanZoomCamera>(1000.0f, center));
 }
 
@@ -155,6 +190,7 @@ void MyRender::render() {
 	
 	boundary->render();
 	exteriorMesh->render();
+	neighbourhoods->render();
 	if (cam->getWidth() < 5000) interiorMesh->render();
 }
 

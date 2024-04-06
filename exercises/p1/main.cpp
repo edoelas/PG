@@ -2,6 +2,7 @@
 #include <PGUPV.h>
 #include <GUI3.h>
 #include <iomanip>
+#include <tuple>
 #include "gmlReader.h"
 
 using namespace PGUPV;
@@ -26,6 +27,13 @@ private:
 	Axes axes;
 };
 
+glm::vec2 reduce_point(double x, double y) {
+	return glm::vec2{ static_cast<float>(x - 720000), static_cast<float>(y - 4370000) };
+}
+
+std::tuple<double, double> augment_point(glm::vec2 v) {
+	return { static_cast<double>(v.x) + 720000, static_cast<double>(v.y) + 4370000 };
+}
 
 /**
  * @brief Aquí se define el panel de control de la aplicación
@@ -57,10 +65,13 @@ bool MyRender::mouse_move(const MouseMotionEvent& me) {
 	auto mousePos = glm::vec2{ center.x + viewportSize.x * relPos.x, center.y + viewportSize.y * relPos.y };
 	// 728136, 4373696
 	std::ostringstream os;
-	os << std::fixed << std::setprecision(2) << mousePos.x << " " << mousePos.y << "/n";
+	auto [mx, my] = augment_point(mousePos);
+	os << std::fixed << std::setprecision(2) << mx << " " << my << "/n";
 	cursorPos->setText(os.str());
 	return false;
 }
+
+
 
 void MyRender::setup() {    
 	glClearColor(0.6f, 0.6f, 0.9f, 1.0f);
@@ -89,8 +100,9 @@ void MyRender::setup() {
 			// exterior
 			exteriorFirst.push_back(exteriorCounter);
 			for (const glm::dvec2& exterior : part.exterior) {
-				float x = static_cast<float>(exterior.x);
-				float y = static_cast<float>(exterior.y);
+				auto tmp = reduce_point(exterior.x, exterior.y);
+				float x = tmp.x;
+				float y = tmp.y;
 				exteriorVertices.push_back(glm::vec3(x, y, 0.0f));
 				exteriorCounter++;
 
@@ -101,8 +113,9 @@ void MyRender::setup() {
 			for (const auto interior : part.interior) {
 			interiorFirst.push_back(interiorCounter);
 				for (const glm::dvec2& hole : interior) {
-					float x = static_cast<float>(hole.x);
-					float y = static_cast<float>(hole.y);
+					auto tmp = reduce_point(hole.x, hole.y);
+					float x = tmp.x;
+					float y = tmp.y;
 					interiorVertices.push_back(glm::vec3(x, y, 0.0f));
 					interiorCounter++;
 				}
@@ -119,14 +132,14 @@ void MyRender::setup() {
 
 
 	// Limites
+	auto ll = reduce_point(city.min.x, city.min.y);
+	auto ur = reduce_point(city.max.x, city.max.y);
 	boundary = std::make_unique<PGUPV::Mesh>();
-	auto ll = city.min;
-	auto ur = city.max;
 	boundary->addVertices({ ll, glm::vec2{ur.x, ll.y}, ur, glm::vec2{ll.x, ur.y}});
 	boundary->setColor(glm::vec4{ 0.8f, 0.1f, 0.1f, 1.0f });
 	boundary->addDrawCommand(new PGUPV::DrawArrays(GL_LINE_LOOP, 0, 4));
 
-	auto center = glm::vec3{ (city.min.x + city.max.x) / 2, (city.min.y + city.max.y) / 2, 0.0f };
+	auto center = glm::vec3{ (ll.x + ur.x) / 2, (ll.y + ur.y) / 2, 0.0f };
 	setCameraHandler(std::make_shared<XYPanZoomCamera>(1000.0f, center));
 }
 
