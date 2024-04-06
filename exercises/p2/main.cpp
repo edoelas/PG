@@ -29,10 +29,15 @@ private:
 	std::unique_ptr<PGUPV::Mesh> exteriorMesh;
 	std::unique_ptr<PGUPV::Mesh> interiorMesh;
 	std::unique_ptr<PGUPV::Mesh> neighbourhoods;
+	std::vector<GLint> neighbourhoodsVFirst;
+	std::vector<GLsizei> neighbourhoodsVCount;
 	std::vector<std::string> neighbourhoodsNames;
+	std::vector<std::unique_ptr<PGUPV::Mesh>> neighbourhoodMeshList;
 	// UI
 	std::shared_ptr<Label> cursorPos;
 	std::shared_ptr<ListBoxWidget<>> neighbourhoodWidget;
+	std::shared_ptr<RGBAColorWidget> colorWidget;
+
 	glm::uvec2 windowSize{ 0 };
 
 	Axes axes;
@@ -56,6 +61,10 @@ void MyRender::buildGUI() {
 	// Mostramos la lista de barrios usando ListBoxWidget
 	neighbourhoodWidget = std::make_shared<ListBoxWidget<>>("Neightbourhood Names", neighbourhoodsNames);
 	panel->addWidget(neighbourhoodWidget);
+
+	// Creamos un widget para seleccionar el color
+	colorWidget = std::make_shared<RGBAColorWidget>("Color", glm::vec4{ 0.8f, 1.f, 0.1f, 0.4f });
+	panel->addWidget(colorWidget);
 
 	App::getInstance().getWindow().showGUI(true);
 }
@@ -140,31 +149,37 @@ void MyRender::setupNeighbourhoods(std::string path) {
 	neighbourhood_file = readNeighborhood(App::assetsDir() + "/data/barris-barrios.kml");
 
 	neighbourhoods = std::make_unique<PGUPV::Mesh>();
+	neighbourhoodsNames = std::vector<std::string>(neighbourhood_file.placemarks.size());
 	std::vector<glm::vec3> vertices;
-	std::vector<GLint> first;
-	std::vector<GLsizei> count;
 	int counter = 0;
 
-	for (const auto& polygon : neighbourhood_file.placemarks) {
-		first.push_back(counter);
-		for (const auto& point : polygon.geometry) {
+	for (size_t i = 0; i < neighbourhood_file.placemarks.size(); i++) {
+		auto placemark = neighbourhood_file.placemarks[i];
+		neighbourhoodsNames[i] = std::get<std::string>(placemark.attributes["nombre"]);
+		neighbourhoodsVFirst.push_back(counter);
+		for (const auto& point : placemark.geometry) {
 			for (const auto& vertex : point.outerBoundary) {
 				vertices.push_back(glm::vec3{ vertex.x, vertex.y, 0.0f });
 				counter++;
 			}
 		}
-		count.push_back(counter - first.back());
+		neighbourhoodsVCount.push_back(counter - neighbourhoodsVFirst.back());
 	}
 
 	neighbourhoods->addVertices(vertices);
-	neighbourhoods->addDrawCommand(new MultiDrawArrays(GL_LINE_LOOP, first.data(), count.data(), first.size()));
+	neighbourhoods->addDrawCommand(new MultiDrawArrays(GL_LINE_LOOP, neighbourhoodsVFirst.data(), neighbourhoodsVCount.data(), neighbourhoodsVFirst.size()));
 	neighbourhoods->setColor(glm::vec4{ 0.8f, 0.1f, 0.1f, 1.0f });
 
-	neighbourhoodsNames = std::vector<std::string>(neighbourhood_file.placemarks.size());
-	for (size_t i = 0; i < neighbourhood_file.placemarks.size(); i++) {
-		neighbourhoodsNames[i] = std::get<std::string>(neighbourhood_file.placemarks[i].attributes["nombre"]);
+	// create a std::vector with the std::make_unique<PGUPV::Mesh> for each neighbourhood
+	neighbourhoodMeshList = std::vector<std::unique_ptr<PGUPV::Mesh>>(neighbourhoodsVFirst.size());
+	for (size_t i = 0; i < neighbourhoodsVFirst.size(); i++) {
+		auto mesh = std::make_unique<PGUPV::Mesh>();
+		mesh->addVertices(vertices);
+		mesh->addDrawCommand(new DrawArrays(GL_TRIANGLE_FAN, neighbourhoodsVFirst[i], neighbourhoodsVCount[i]));
+		mesh->setColor(glm::vec4{ 0.8f, 1.f, 0.1f, 0.4f });
+		neighbourhoodMeshList[i] = std::move(mesh);
 	}
-	
+
 }
 
 void MyRender::setup() {
@@ -179,6 +194,7 @@ void MyRender::setup() {
 	setCameraHandler(std::make_shared<XYPanZoomCamera>(1000.0f, center));
 	
 	buildGUI();
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
 void MyRender::render() {
@@ -189,11 +205,42 @@ void MyRender::render() {
 	mats->setMatrix(GLMatrices::VIEW_MATRIX, getCamera().getViewMatrix());
 
 	ConstantIllumProgram::use();
+
 	
-	boundary->render();
 	exteriorMesh->render();
-	neighbourhoods->render();
+	boundary->render();
 	if (cam->getWidth() < 5000) interiorMesh->render();
+
+	// draw selected neighbourhood
+	auto selected = neighbourhoodWidget->getSelected();
+	if (selected >= 0) {
+
+		glEnable(GL_STENCIL_TEST);
+		glClear(GL_STENCIL_BUFFER_BIT);
+
+		glStencilFunc(GL_ALWAYS, 0, 1);
+		glStencilOp(GL_INVERT, GL_INVERT, GL_INVERT);
+		glColorMask(false, false, false, false);
+
+		neighbourhoodMeshList[selected]->render();
+
+		glStencilFunc(GL_EQUAL, 1, 1);
+		glStencilOp(GL_KEEP, GL_KEEP, GL_INVERT);
+		glColorMask(true, true, true, true);
+
+		glEnable(GL_BLEND);
+		neighbourhoodMeshList[selected]->setColor(colorWidget->getColor());
+		neighbourhoodMeshList[selected]->render();
+		glDisable(GL_BLEND);
+
+
+		glDisable(GL_STENCIL_TEST);
+	}
+
+
+
+	neighbourhoods->render();
+
 }
 
 
@@ -204,7 +251,7 @@ void MyRender::reshape(uint w, uint h) {
 
 int main(int argc, char* argv[]) {
 	App& myApp = App::getInstance();
-	myApp.initApp(argc, argv, PGUPV::DOUBLE_BUFFER);
+	myApp.initApp(argc, argv, PGUPV::DOUBLE_BUFFER | PGUPV::STENCIL_BUFFER);
 	myApp.getWindow().setRenderer(std::make_shared<MyRender>());
 	return myApp.run();
 }
