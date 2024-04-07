@@ -17,22 +17,26 @@ public:
 	bool mouse_move(const MouseMotionEvent&) override;
 private:
 	void buildGUI();
+	glm::vec2 reduce_point(double x, double y);
+	std::tuple<double, double> augment_point(glm::vec2 v);	
 	std::shared_ptr<GLMatrices> mats;
 	std::unique_ptr<PGUPV::Mesh> boundary;
 	std::unique_ptr<PGUPV::Mesh> exteriorMesh;
 	std::unique_ptr<PGUPV::Mesh> interiorMesh;
 	std::shared_ptr<Label> cursorPos;
 	glm::uvec2 windowSize{ 0 };
+	City city;
 
 	Axes axes;
 };
 
-glm::vec2 reduce_point(double x, double y) {
-	return glm::vec2{ static_cast<float>(x - 720000), static_cast<float>(y - 4370000) };
+
+glm::vec2 MyRender::reduce_point(double x, double y) {
+	return glm::vec2{ static_cast<float>(x - city.min.x), static_cast<float>(y - city.min.y) };
 }
 
-std::tuple<double, double> augment_point(glm::vec2 v) {
-	return { static_cast<double>(v.x) + 720000, static_cast<double>(v.y) + 4370000 };
+std::tuple<double, double> MyRender::augment_point(glm::vec2 v) {
+	return { static_cast<double>(v.x + city.min.x), static_cast<double>(v.y + city.min.x) };
 }
 
 /**
@@ -79,7 +83,7 @@ void MyRender::setup() {
 
 	buildGUI();
 	std::string fname = App::assetsDir() + "/data/A.ES.SDGC.BU.46900.buildingpart.test.gml";
-	City city = readBuildings(fname, true);
+	city = readBuildings(fname, true);
 
 
 	exteriorMesh = std::make_unique<Mesh>();

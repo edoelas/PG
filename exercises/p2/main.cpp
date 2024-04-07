@@ -38,11 +38,22 @@ private:
 	std::shared_ptr<ListBoxWidget<>> neighbourhoodWidget;
 	std::shared_ptr<RGBAColorWidget> colorWidget;
 
+	glm::vec3 reduce_point(double x, double y);
+	std::tuple<double, double> augment_point(glm::vec2 v);
+
 	glm::uvec2 windowSize{ 0 };
 
 	Axes axes;
 };
 
+
+glm::vec3 MyRender::reduce_point(double x, double y) {
+	return glm::vec3{ static_cast<float>(x - city_file.min.x), static_cast<float>(y - city_file.min.y), 0.0f };
+}
+
+std::tuple<double, double> MyRender::augment_point(glm::vec2 v) {
+	return { static_cast<double>(v.x + city_file.min.x), static_cast<double>(v.y + city_file.min.x) };
+}
 
 /**
  * @brief Aquí se define el panel de control de la aplicación
@@ -82,7 +93,8 @@ bool MyRender::mouse_move(const MouseMotionEvent& me) {
 	auto mousePos = glm::vec2{ center.x + viewportSize.x * relPos.x, center.y + viewportSize.y * relPos.y };
 	// 728136, 4373696
 	std::ostringstream os;
-	os << std::fixed << std::setprecision(2) << mousePos.x << " " << mousePos.y << "/n";
+	auto [mx, my] = augment_point(mousePos);
+	os << std::fixed << std::setprecision(2) << mx << " " << my << "/n";
 	cursorPos->setText(os.str());
 	return false;
 }
@@ -107,9 +119,7 @@ void MyRender::setupBuildings( std::string path) {
 			// exterior
 			exteriorFirst.push_back(exteriorCounter);
 			for (const glm::dvec2& exterior : part.exterior) {
-				float x = static_cast<float>(exterior.x);
-				float y = static_cast<float>(exterior.y);
-				exteriorVertices.push_back(glm::vec3(x, y, 0.0f));
+				exteriorVertices.push_back(reduce_point(exterior.x, exterior.y));
 				exteriorCounter++;
 
 			}
@@ -119,9 +129,7 @@ void MyRender::setupBuildings( std::string path) {
 			for (const auto interior : part.interior) {
 				interiorFirst.push_back(interiorCounter);
 				for (const glm::dvec2& hole : interior) {
-					float x = static_cast<float>(hole.x);
-					float y = static_cast<float>(hole.y);
-					interiorVertices.push_back(glm::vec3(x, y, 0.0f));
+					interiorVertices.push_back(reduce_point(hole.x, hole.y));
 					interiorCounter++;
 				}
 				interiorCount.push_back(interiorCounter - interiorFirst.back());
@@ -139,10 +147,15 @@ void MyRender::setupBuildings( std::string path) {
 }
 
 void MyRender::setupBounds() {
+	auto ll = reduce_point(city_file.min.x, city_file.min.y);
+	auto ur = reduce_point(city_file.max.x, city_file.max.y);
 	boundary = std::make_unique<PGUPV::Mesh>();
-	boundary->addVertices({ city_file.min, glm::vec2{city_file.max.x, city_file.min.y}, city_file.max, glm::vec2{city_file.min.x, city_file.max.y} });
+	boundary->addVertices({ ll, glm::vec2{ur.x, ll.y}, ur, glm::vec2{ll.x, ur.y} });
 	boundary->setColor(glm::vec4{ 0.8f, 0.1f, 0.1f, 1.0f });
 	boundary->addDrawCommand(new PGUPV::DrawArrays(GL_LINE_LOOP, 0, 4));
+
+	auto center = glm::vec3{ (ll.x + ur.x) / 2, (ll.y + ur.y) / 2, 0.0f };
+	setCameraHandler(std::make_shared<XYPanZoomCamera>(1000.0f, center));
 }
 
 void MyRender::setupNeighbourhoods(std::string path) {
@@ -159,7 +172,7 @@ void MyRender::setupNeighbourhoods(std::string path) {
 		neighbourhoodsVFirst.push_back(counter);
 		for (const auto& point : placemark.geometry) {
 			for (const auto& vertex : point.outerBoundary) {
-				vertices.push_back(glm::vec3{ vertex.x, vertex.y, 0.0f });
+				vertices.push_back(reduce_point(vertex.x, vertex.y));
 				counter++;
 			}
 		}
@@ -190,9 +203,6 @@ void MyRender::setup() {
 	setupNeighbourhoods(App::assetsDir() + "/data/barris-barrios.kml");
 	setupBounds();
 
-	auto center = glm::vec3{ (city_file.min.x + city_file.max.x) / 2, (city_file.min.y + city_file.max.y) / 2, 0.0f };
-	setCameraHandler(std::make_shared<XYPanZoomCamera>(1000.0f, center));
-	
 	buildGUI();
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
