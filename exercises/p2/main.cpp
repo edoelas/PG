@@ -18,6 +18,7 @@ private:
 	void buildGUI();
 	void setupBuildings(std::string path);
 	void setupNeighbourhoods(std::string path);
+	void setupBathrooms(std::string path);
 	void setupBounds();
 
 	// files
@@ -29,6 +30,8 @@ private:
 	std::unique_ptr<PGUPV::Mesh> exteriorMesh;
 	std::unique_ptr<PGUPV::Mesh> interiorMesh;
 	std::unique_ptr<PGUPV::Mesh> neighbourhoods;
+	std::unique_ptr<PGUPV::Mesh> bathrooms;
+
 	std::vector<GLint> neighbourhoodsVFirst;
 	std::vector<GLsizei> neighbourhoodsVCount;
 	std::vector<std::string> neighbourhoodsNames;
@@ -37,6 +40,8 @@ private:
 	std::shared_ptr<Label> cursorPos;
 	std::shared_ptr<ListBoxWidget<>> neighbourhoodWidget;
 	std::shared_ptr<RGBAColorWidget> colorWidget;
+	std::shared_ptr<CheckBoxWidget> showBathrooms;
+
 
 	glm::vec3 reduce_point(double x, double y);
 	std::tuple<double, double> augment_point(glm::vec2 v);
@@ -76,6 +81,10 @@ void MyRender::buildGUI() {
 	// Creamos un widget para seleccionar el color
 	colorWidget = std::make_shared<RGBAColorWidget>("Color", glm::vec4{ 0.8f, 1.f, 0.1f, 0.4f });
 	panel->addWidget(colorWidget);
+
+	// Creamos un widget para mostrar los baños
+	showBathrooms = std::make_shared<CheckBoxWidget>("Show Bathrooms", false);
+	panel->addWidget(showBathrooms);
 
 	App::getInstance().getWindow().showGUI(true);
 }
@@ -195,12 +204,29 @@ void MyRender::setupNeighbourhoods(std::string path) {
 
 }
 
+void MyRender::setupBathrooms(std::string path) {
+	auto bathrooms_file = readBathrooms(path);
+	
+	bathrooms = std::make_unique<PGUPV::Mesh>();
+	std::vector<glm::vec3> vertices;
+	for (const auto& placemark : bathrooms_file.placemarks) {
+		for (const auto& point : placemark.geometry) {
+			vertices.push_back(reduce_point(point.outerBoundary[0].x, point.outerBoundary[0].y));
+		}
+	}
+	bathrooms->addVertices(vertices);
+	glPointSize(5.0f);
+	bathrooms->addDrawCommand(new DrawArrays(GL_POINTS, 0, vertices.size()));
+	bathrooms->setColor(glm::vec4{ 0.1f, 0.4f, 0.0f, 1.0f });
+}
+
 void MyRender::setup() {
 	glClearColor(0.6f, 0.6f, 0.9f, 1.0f);
 	mats = GLMatrices::build();
 	
 	setupBuildings(App::assetsDir() + "/data/A.ES.SDGC.BU.46900.buildingpart.test.gml");
 	setupNeighbourhoods(App::assetsDir() + "/data/barris-barrios.kml");
+	setupBathrooms(App::assetsDir() + "/data/urinaris-urinarios.kml");
 	setupBounds();
 
 	buildGUI();
@@ -247,7 +273,7 @@ void MyRender::render() {
 		glDisable(GL_STENCIL_TEST);
 	}
 
-
+	if (showBathrooms->get()) bathrooms->render();
 
 	neighbourhoods->render();
 

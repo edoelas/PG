@@ -27,6 +27,7 @@ private:
 	std::unique_ptr<PGUPV::Mesh> exteriorMesh;
 	std::unique_ptr<PGUPV::Mesh> interiorMesh;
 	std::unique_ptr<PGUPV::Mesh> neighbourhoods;
+	std::unique_ptr<PGUPV::Mesh> bathrooms;
 	std::vector<std::unique_ptr<PGUPV::Mesh>> neighbourhoodMeshList;
 	// textures
 	std::vector<std::shared_ptr<Texture2D>> textures;
@@ -37,6 +38,7 @@ private:
 	std::shared_ptr<RGBAColorWidget> colorWidget;
 	std::shared_ptr<ListBoxWidget<>> tilesList;
 	std::shared_ptr<Label> renderedTilesLbl;
+	std::shared_ptr<CheckBoxWidget> showBathrooms;
 	// other
 	std::vector<std::string> neighbourhoodsNames;
 	std::string tilesFolder;
@@ -119,6 +121,8 @@ void MyRender::buildGUI() {
 	renderedTilesLbl = std::make_shared<Label>("");
 	hbox->addChild(renderedTilesLbl);
 	panel->addWidget(hbox);
+
+	showBathrooms = std::make_shared<CheckBoxWidget>("Show bathrooms", false);
 
 	App::getInstance().getWindow().showGUI(true);
 }

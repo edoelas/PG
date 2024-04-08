@@ -50,3 +50,10 @@ struct KMLFile {
  * @return la información de los barrios
  */
 KMLFile readNeighborhood(const std::string& fname);
+
+/**
+ * @brief Lee un fichero KML con la información de los baños de una ciudad.
+ * @param fname nombre del fichero
+ * @return la información de los baños
+ */
+KMLFile readBathrooms(const std::string& fname);
