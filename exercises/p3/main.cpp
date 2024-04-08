@@ -155,7 +155,12 @@ void MyRender::setupGeoTiff(std::shared_ptr<Texture2D> texture, std::vector<glm:
 	mesh->addDrawCommand(new DrawArrays(GL_TRIANGLE_FAN, 0, 4));
 	
 	textureMeshes.push_back(std::move(mesh));
+	texture->setWrapS(GL_MIRROR_CLAMP_TO_EDGE);
+	texture->setWrapT(GL_MIRROR_CLAMP_TO_EDGE);
+	texture->generateMipmap();
+	texture->setMinFilter(GL_LINEAR_MIPMAP_LINEAR);
 	textures.push_back(texture);
+
 }
 
 /**
@@ -314,13 +319,27 @@ void MyRender::render() {
 
 	TextureReplaceProgram::use();
 
+	int counter = 0;
+
 	for (int i = 0; i < textures.size(); i++) {
+		// check frustrum culling
+		glm::vec2 mesh_tl = textureMeshes[i]->getBB().min;
+		glm::vec2 mesh_br = textureMeshes[i]->getBB().max;
+
+		glm::vec2 camera_tl = glm::vec2{ cam->getCenter().x - cam->getWidth() / 2, cam->getCenter().y - cam->getHeight() / 2 };
+		glm::vec2 camera_br = glm::vec2{ cam->getCenter().x + cam->getWidth() / 2, cam->getCenter().y + cam->getHeight() / 2 };
+
+		if (mesh_br.x < camera_tl.x || mesh_tl.x > camera_br.x || mesh_br.y < camera_tl.y || mesh_tl.y > camera_br.y) {
+			continue;
+		}
+
 		textures[i]->bind(GL_TEXTURE0+i);
 		TextureReplaceProgram::setTextureUnit(i);
 		textureMeshes[i]->render();
+		counter++;
 	}
 
-	renderedTilesLbl->setText(std::to_string(textures.size()));
+	renderedTilesLbl->setText(std::to_string(counter));
 	
 	ConstantIllumProgram::use();
 
