@@ -4,6 +4,7 @@
 #include "gmlReader.h"
 #include "kmlReader.h"
 #include <filesystem>
+#include < stdint.h >
 
 using namespace PGUPV;
 
@@ -153,12 +154,24 @@ void MyRender::setupGeoTiff(std::shared_ptr<Texture2D> texture, std::vector<glm:
 	mesh->addVertices(vertices);
 	mesh->addTexCoord(0, { {0.0f, 0.0f}, {1.0f, 0.0f}, {1.0f, 1.0f}, {0.0f, 1.0f} });
 	mesh->addDrawCommand(new DrawArrays(GL_TRIANGLE_FAN, 0, 4));
-	
 	textureMeshes.push_back(std::move(mesh));
+
+	//auto texture_pointer = std::make_shared<std::vector<uint8_t>>(3 * texture->getWidth() * texture->getHeight());
+	//auto texture_pointer = std::shared_ptr<uint8_t>(new uint8_t[3 * 8192 * 8192], [](uint8_t* p) { delete[] p; });
+	auto texture_pointer = new uint8_t[3 * texture->getWidth() * texture->getHeight()];
+	glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_UNSIGNED_BYTE, texture_pointer);
+	GLsizei size = texture->getWidth() * texture->getHeight() * 3;
+	glTexImage2D(GL_TEXTURE_2D, 1, GL_COMPRESSED_RGB, texture->getWidth(), texture->getHeight(), 0, GL_RGB, GL_UNSIGNED_BYTE, texture_pointer);
+	//glCompressedTexImage2D(GL_TEXTURE_2D, 1, GL_COMPRESSED_RGB, texture->getWidth(), texture->getHeight(), 0, size, texture_pointer);
+	
+	//check texture size
+	auto texture_info = texture->getLevelInfo(0);
+
 	texture->setWrapS(GL_MIRROR_CLAMP_TO_EDGE);
 	texture->setWrapT(GL_MIRROR_CLAMP_TO_EDGE);
 	texture->generateMipmap();
 	texture->setMinFilter(GL_LINEAR_MIPMAP_LINEAR);
+	texture->setMagFilter(GL_LINEAR);
 	textures.push_back(texture);
 
 }
