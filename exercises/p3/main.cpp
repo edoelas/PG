@@ -54,6 +54,8 @@ private:
 	void refreshTilesList(const std::string& folder);
 	glm::vec3 reduce_point(double x, double y);
 	std::tuple<double, double> augment_point(glm::vec2 v);
+	void setupBathrooms(std::string path);
+
 };
 
 
@@ -86,6 +88,10 @@ void MyRender::buildGUI() {
 	// Creamos un widget para seleccionar el color
 	colorWidget = std::make_shared<RGBAColorWidget>("Color", glm::vec4{ 0.8f, 1.f, 0.1f, 0.4f });
 	panel->addWidget(colorWidget);
+
+	// Creamos un widget para mostrar los baños
+	showBathrooms = std::make_shared<CheckBoxWidget>("Show Bathrooms", false);
+	panel->addWidget(showBathrooms);
 
 
 	// Añadimos un botón para seleccionar la carpeta de los tiles
@@ -122,8 +128,6 @@ void MyRender::buildGUI() {
 	hbox->addChild(renderedTilesLbl);
 	panel->addWidget(hbox);
 
-	showBathrooms = std::make_shared<CheckBoxWidget>("Show bathrooms", false);
-
 	App::getInstance().getWindow().showGUI(true);
 }
 
@@ -139,7 +143,7 @@ bool MyRender::loadGeoTif(const std::string& filename)
 	}
 	// Creamos una textura a partir de la imagen cargada en memoria
 	auto texture = std::make_shared<Texture2D>();
-	texture->loadImage(geotif);
+	texture->loadImage(geotif, GL_COMPRESSED_RGB);
 
 	auto corners = metadata.value().corners();
 	setupGeoTiff(texture, corners);
@@ -165,11 +169,11 @@ void MyRender::setupGeoTiff(std::shared_ptr<Texture2D> texture, std::vector<glm:
 	glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_UNSIGNED_BYTE, texture_pointer.get());
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_COMPRESSED_RGB, texture->getWidth(), texture->getHeight(), 0, GL_RGB, GL_UNSIGNED_BYTE, texture_pointer.get());
 	//*/
-	auto texture_info = texture->getLevelInfo(0);
+	//auto texture_info = texture->getLevelInfo(0);
 
 	texture->generateMipmap();
 	texture->setWrapS(GL_CLAMP_TO_EDGE);
-	texture->setWrapR(GL_CLAMP_TO_EDGE);
+	texture->setWrapT(GL_CLAMP_TO_EDGE);
 	texture->setMinFilter(GL_LINEAR_MIPMAP_LINEAR);
 	texture->setMagFilter(GL_LINEAR);
 	textures.push_back(texture);
@@ -311,12 +315,29 @@ void MyRender::setupNeighbourhoods(std::string path) {
 
 }
 
+void MyRender::setupBathrooms(std::string path) {
+	auto bathrooms_file = readBathrooms(path);
+
+	bathrooms = std::make_unique<PGUPV::Mesh>();
+	std::vector<glm::vec3> vertices;
+	for (const auto& placemark : bathrooms_file.placemarks) {
+		for (const auto& point : placemark.geometry) {
+			vertices.push_back(reduce_point(point.outerBoundary[0].x, point.outerBoundary[0].y));
+		}
+	}
+	bathrooms->addVertices(vertices);
+	glPointSize(5.0f);
+	bathrooms->addDrawCommand(new DrawArrays(GL_POINTS, 0, vertices.size()));
+	bathrooms->setColor(glm::vec4{ 1.f, 0.4f, 0.0f, 1.0f });
+}
+
 void MyRender::setup() {
 	glClearColor(0.6f, 0.6f, 0.9f, 1.0f);
 	mats = GLMatrices::build();
 	
-	setupBuildings(App::assetsDir() + "/data/A.ES.SDGC.BU.46900.buildingpart.test.gml");
+	setupBuildings(App::assetsDir() + "/data/A.ES.SDGC.BU.46900.buildingpart.gml");
 	setupNeighbourhoods(App::assetsDir() + "/data/barris-barrios.kml");
+	setupBathrooms(App::assetsDir() + "/data/urinaris-urinarios.kml");
 	setupBounds();
 
 	buildGUI();
@@ -385,6 +406,9 @@ void MyRender::render() {
 
 		glDisable(GL_STENCIL_TEST);
 	}
+
+	if (showBathrooms->get()) bathrooms->render();
+
 	neighbourhoods->render();
 
 }
