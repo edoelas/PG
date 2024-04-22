@@ -30,7 +30,7 @@ void renderSpotLight(GLMatrices &glMats, const glm::vec3 &posWorld, const glm::v
 	glMats.multMatrix(GLMatrices::MODEL_MATRIX, m);
 	glMats.translate(GLMatrices::MODEL_MATRIX,
 		glm::vec3(0.0, -CONE_HEIGHT / 2, 0.0));
-	ConstantUniformColorProgram::setColor(glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+	ConstantUniformColorProgram::setColor(glm::vec4(0.1f, 0.1f, 0.1f, 1.0f));
 	foco.render();
 
 	ConstantUniformColorProgram::setColor(lightColor);

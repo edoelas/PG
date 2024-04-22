@@ -101,7 +101,7 @@ FetchContent_MakeAvailable(par)
 add_library(par_lib INTERFACE)
 target_include_directories(par_lib INTERFACE ${par_SOURCE_DIR})
 
-
+set(WITH_JPEG8 ON)
 add_subdirectory(openpnp-capture)
 # set the include dir
 target_include_directories(openpnp-capture PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/openpnp-capture/include>)

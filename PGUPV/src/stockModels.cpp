@@ -549,14 +549,17 @@ ScreenPolygon::ScreenPolygon(const glm::vec4 &color) {
 
 void ScreenPolygon::render() {
 	auto mats = std::dynamic_pointer_cast<GLMatrices>(PGUPV::gl_uniform_buffer.getBound(UBO_GL_MATRICES_BINDING_INDEX));
-	mats->pushMatrix(GLMatrices::PROJ_MATRIX);
-	mats->pushMatrix(GLMatrices::VIEW_MATRIX);
-	mats->setMatrix(GLMatrices::PROJ_MATRIX, glm::ortho(-1.0f, 1.0f, -1.0f, 1.0f));
-	mats->loadIdentity(GLMatrices::VIEW_MATRIX);
-
+	if (mats) {
+		mats->pushMatrix(GLMatrices::PROJ_MATRIX);
+		mats->pushMatrix(GLMatrices::VIEW_MATRIX);
+		mats->setMatrix(GLMatrices::PROJ_MATRIX, glm::ortho(-1.0f, 1.0f, -1.0f, 1.0f));
+		mats->loadIdentity(GLMatrices::VIEW_MATRIX);
+	}
 	Model::render();
-	mats->popMatrix(GLMatrices::PROJ_MATRIX);
-	mats->popMatrix(GLMatrices::VIEW_MATRIX);
+	if (mats) {
+		mats->popMatrix(GLMatrices::PROJ_MATRIX);
+		mats->popMatrix(GLMatrices::VIEW_MATRIX);
+	}
 }
 
 TeapotPatches::TeapotPatches() {

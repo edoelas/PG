@@ -562,7 +562,7 @@ void Mesh::render() {
 	render(drawCommands);
 }
 
-void Mesh::render(std::vector<DrawCommand*>& drawCommands)
+void Mesh::render(const std::vector<DrawCommand*>& drawCommands)
 {
 	vao.bind();
 	if (material) material->use();

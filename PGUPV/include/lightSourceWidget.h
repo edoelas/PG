@@ -35,6 +35,7 @@ namespace PGUPV {
 
       posDirLabel.render();
       isDirectional->render();
+	  dirSelector->renderReversed(isDirectional->get());
       dirSelector->render();
       posSelector->render();
 
@@ -48,8 +49,10 @@ namespace PGUPV {
 
         spotLightLabel.render();
         spotAngle->render();
-        spotDirSelector->render();
-        spotExponentSelector->render();
+		if (spotAngle->get() < 180.0f) {
+			spotDirSelector->render();
+			spotExponentSelector->render();
+		}
       }
     }
   protected:

@@ -86,7 +86,12 @@ Texture::TextureLevelInfo Texture::getLevelInfo(GLint level) const
 	GLint temp;
 	glGetTextureLevelParameteriv(_texId, level, GL_TEXTURE_COMPRESSED, &temp);
 	result.compressed = temp != 0;
-	glGetTextureLevelParameteriv(_texId, level, GL_TEXTURE_COMPRESSED_IMAGE_SIZE, &result.compressedImageSize);
+	if (result.compressed) {
+		glGetTextureLevelParameteriv(_texId, level, GL_TEXTURE_COMPRESSED_IMAGE_SIZE, &result.compressedImageSize);
+	}
+	else {
+		result.compressedImageSize = 0;
+	}
 	glGetTextureLevelParameteriv(_texId, level, GL_TEXTURE_BUFFER_OFFSET, &result.bufferOffset);
 	glGetTextureLevelParameteriv(_texId, level, GL_TEXTURE_BUFFER_SIZE, &result.bufferSize);
 	return result;

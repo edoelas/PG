@@ -301,7 +301,7 @@ namespace PGUPV {
 		 * @brief Este método permite lanzar un conjunto de órdenes de dibujado sobre la malla
 		 * @param drawCommands 
 		*/
-		void render(std::vector<DrawCommand *> &drawCommands);
+		void render(const std::vector<DrawCommand *> &drawCommands);
 		/**
 		\return el número de vértices de la malla (cuidado! NO el número de
 		 índices)

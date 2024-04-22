@@ -45,16 +45,11 @@ Value<glm::vec3>& DirectionWidget::getValue() {
 
 void DirectionWidget::renderWidget() {
 	auto original = value.getValue();
-	if (cameraPtr) {
-		auto xformed = glm::mat3(cameraPtr->getViewMatrix()) * original;
-		if (GUILib::DirectionGizmo(label, xformed, original)) {
-			auto result = glm::transpose(glm::mat3(cameraPtr->getViewMatrix())) * xformed;
-			value.setValue(result);
-		}
-	}
-	else {
-		if (GUILib::DirectionGizmo(label, original)) {
-			value.setValue(original);
-		}
+	auto viewMatrix = cameraPtr ? glm::mat3(cameraPtr->getViewMatrix()) : glm::mat3(1.0f);
+
+	auto xformed = viewMatrix * (renderReversedFlag ? -original : original);
+	if (GUILib::DirectionGizmo(label, xformed, original)) {
+		auto result = glm::transpose(viewMatrix) * (renderReversedFlag ? -xformed : xformed);
+		value.setValue(result);
 	}
 }
