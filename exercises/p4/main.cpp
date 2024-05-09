@@ -58,7 +58,7 @@ void MyRender::setup() {
 	  videoFeed = std::make_shared<TextureVideo>(App::assetsDir() + "videos/bigbuck.mp4");
   }
   else {
-	  videoFeed = std::make_shared<TextureVideo>(0);
+	  videoFeed = std::make_shared<TextureVideo>(0,15);
   }
   videoFeed->bind(GL_TEXTURE0);
 }
