@@ -57,7 +57,7 @@ glm::vec3 MyRender::reduce_point(double x, double y) {
 }
 
 std::tuple<double, double> MyRender::augment_point(glm::vec2 v) {
-	return { static_cast<double>(v.x + city_file.min.x), static_cast<double>(v.y + city_file.min.x) };
+	return { static_cast<double>(v.x + city_file.min.x), static_cast<double>(v.y + city_file.min.y) };
 }
 
 /**
@@ -168,7 +168,7 @@ void MyRender::setupBounds() {
 }
 
 void MyRender::setupNeighbourhoods(std::string path) {
-	neighbourhood_file = readNeighborhood(App::assetsDir() + "/data/barris-barrios.kml");
+	neighbourhood_file = readNeighborhood(path);
 
 	neighbourhoods = std::make_unique<PGUPV::Mesh>();
 	neighbourhoodsNames = std::vector<std::string>(neighbourhood_file.placemarks.size());
@@ -224,7 +224,7 @@ void MyRender::setup() {
 	glClearColor(0.6f, 0.6f, 0.9f, 1.0f);
 	mats = GLMatrices::build();
 	
-	setupBuildings(App::assetsDir() + "/data/A.ES.SDGC.BU.46900.buildingpart.test.gml");
+	setupBuildings(App::assetsDir() + "/data/A.ES.SDGC.BU.46900.buildingpart.gml");
 	setupNeighbourhoods(App::assetsDir() + "/data/barris-barrios.kml");
 	setupBathrooms(App::assetsDir() + "/data/urinaris-urinarios.kml");
 	setupBounds();

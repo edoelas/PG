@@ -17,7 +17,7 @@ public:
 	bool mouse_move(const MouseMotionEvent&) override;
 private:
 	void buildGUI();
-	glm::vec2 reduce_point(double x, double y);
+	glm::vec3 reduce_point(double x, double y);
 	std::tuple<double, double> augment_point(glm::vec2 v);	
 	std::shared_ptr<GLMatrices> mats;
 	std::unique_ptr<PGUPV::Mesh> boundary;
@@ -31,12 +31,12 @@ private:
 };
 
 
-glm::vec2 MyRender::reduce_point(double x, double y) {
-	return glm::vec2{ static_cast<float>(x - city.min.x), static_cast<float>(y - city.min.y) };
+glm::vec3 MyRender::reduce_point(double x, double y) {
+	return glm::vec3{ static_cast<float>(x - city.min.x), static_cast<float>(y - city.min.y), 0.0f };
 }
 
 std::tuple<double, double> MyRender::augment_point(glm::vec2 v) {
-	return { static_cast<double>(v.x + city.min.x), static_cast<double>(v.y + city.min.x) };
+	return { static_cast<double>(v.x + city.min.x), static_cast<double>(v.y + city.min.y) };
 }
 
 /**
@@ -82,7 +82,7 @@ void MyRender::setup() {
 	mats = GLMatrices::build();
 
 	buildGUI();
-	std::string fname = App::assetsDir() + "/data/A.ES.SDGC.BU.46900.buildingpart.test.gml";
+	std::string fname = App::assetsDir() + "/data/A.ES.SDGC.BU.46900.buildingpart.gml";
 	city = readBuildings(fname, true);
 
 
@@ -104,10 +104,7 @@ void MyRender::setup() {
 			// exterior
 			exteriorFirst.push_back(exteriorCounter);
 			for (const glm::dvec2& exterior : part.exterior) {
-				auto tmp = reduce_point(exterior.x, exterior.y);
-				float x = tmp.x;
-				float y = tmp.y;
-				exteriorVertices.push_back(glm::vec3(x, y, 0.0f));
+				exteriorVertices.push_back(reduce_point(exterior.x, exterior.y));
 				exteriorCounter++;
 
 			}
@@ -117,10 +114,7 @@ void MyRender::setup() {
 			for (const auto interior : part.interior) {
 			interiorFirst.push_back(interiorCounter);
 				for (const glm::dvec2& hole : interior) {
-					auto tmp = reduce_point(hole.x, hole.y);
-					float x = tmp.x;
-					float y = tmp.y;
-					interiorVertices.push_back(glm::vec3(x, y, 0.0f));
+					interiorVertices.push_back(reduce_point(hole.x, hole.y));
 					interiorCounter++;
 				}
 			interiorCount.push_back(interiorCounter - interiorFirst.back());

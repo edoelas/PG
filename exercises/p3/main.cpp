@@ -64,7 +64,7 @@ glm::vec3 MyRender::reduce_point(double x, double y) {
 }
 
 std::tuple<double, double> MyRender::augment_point(glm::vec2 v) {
-	return { static_cast<double>(v.x + city_data.min.x), static_cast<double>(v.y + city_data.min.x) };
+	return { static_cast<double>(v.x + city_data.min.x), static_cast<double>(v.y + city_data.min.y) };
 }
 
 /**
@@ -169,13 +169,13 @@ void MyRender::setupGeoTiff(std::shared_ptr<Texture2D> texture, std::vector<glm:
 	glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_UNSIGNED_BYTE, texture_pointer.get());
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_COMPRESSED_RGB, texture->getWidth(), texture->getHeight(), 0, GL_RGB, GL_UNSIGNED_BYTE, texture_pointer.get());
 	//*/
-	//auto texture_info = texture->getLevelInfo(0);
+	auto texture_info = texture->getLevelInfo(0);
 
 	texture->generateMipmap();
 	texture->setWrapS(GL_CLAMP_TO_EDGE);
 	texture->setWrapT(GL_CLAMP_TO_EDGE);
 	texture->setMinFilter(GL_LINEAR_MIPMAP_LINEAR);
-	texture->setMagFilter(GL_LINEAR);
+	texture->setMagFilter(GL_NEAREST);
 	textures.push_back(texture);
 
 }
@@ -277,7 +277,7 @@ void MyRender::setupBounds() {
 }
 
 void MyRender::setupNeighbourhoods(std::string path) {
-	neighbourhood_data = readNeighborhood(App::assetsDir() + "/data/barris-barrios.kml");
+	neighbourhood_data = readNeighborhood(path);
 
 	neighbourhoods = std::make_unique<PGUPV::Mesh>();
 	neighbourhoodsNames = std::vector<std::string>(neighbourhood_data.placemarks.size());
