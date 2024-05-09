@@ -32,9 +32,9 @@ using PGUPV::Shader;
 using PGUPV::UniformInfo;
 using PGUPV::UniformInfoBlocks;
 
-Program *Program::prevProgram = nullptr;
+Program* Program::prevProgram = nullptr;
 
-void declareVarTU(const std::string &base, uint texUnitBase, Program &m) {
+void declareVarTU(const std::string& base, uint texUnitBase, Program& m) {
 	m.replaceString(base, std::to_string(texUnitBase));
 	for (int i = 2; i <= 4; i++)
 		m.replaceString(base + std::to_string(i), std::to_string(texUnitBase + i - 1));
@@ -62,12 +62,12 @@ void Program::release() {
 	}
 }
 
-int Program::loadFiles(const std::string &name) {
-  if (programId) {
-    ERRT("El programa ya está compilado. Deberías crear un Programa nuevo");
-  }
+int Program::loadFiles(const std::string& name) {
+	if (programId) {
+		ERRT("El programa ya está compilado. Deberías crear un Programa nuevo");
+	}
 
-  int count = 0;
+	int count = 0;
 	for (int i = 0; i < Shader::NUM_SHADER_TYPES; i++) {
 		std::string f =
 			name + Shader::getDefaultShaderExtension((Shader::ShaderType)i);
@@ -91,11 +91,11 @@ int Program::loadFiles(const std::string &name) {
 	return count;
 }
 
-int Program::loadFiles(const std::vector<std::string> &files) {
+int Program::loadFiles(const std::vector<std::string>& files) {
 
-  if (programId) {
-    ERRT("El programa ya está compilado. Deberías crear un Programa nuevo");
-  }
+	if (programId) {
+		ERRT("El programa ya está compilado. Deberías crear un Programa nuevo");
+	}
 
 	int count = 0;
 	for (auto name : files) {
@@ -115,11 +115,11 @@ int Program::loadFiles(const std::vector<std::string> &files) {
 }
 
 int Program::loadStrings(
-	const std::vector<std::string> &vertexShader,
-	const std::vector<std::string> &fragmentShader,
-	const std::vector<std::string> &geometryShader,
-	const std::vector<std::string> &tessCtrlShader,
-	const std::vector<std::string> &tessEvalShader) {
+	const std::vector<std::string>& vertexShader,
+	const std::vector<std::string>& fragmentShader,
+	const std::vector<std::string>& geometryShader,
+	const std::vector<std::string>& tessCtrlShader,
+	const std::vector<std::string>& tessEvalShader) {
 
 	int count = 0;
 	if (!vertexShader.empty()) {
@@ -149,7 +149,7 @@ int Program::loadStrings(
 	return count;
 }
 
-void Program::loadComputeStrings(const std::vector<std::string> &computeShader) {
+void Program::loadComputeStrings(const std::vector<std::string>& computeShader) {
 #ifndef __APPLE__
 	if (!computeShader.empty())
 		addShader(Shader::loadFromMemory(computeShader, Shader::COMPUTE_SHADER, subStrings));
@@ -184,19 +184,29 @@ std::string Program::getFileName(Shader::ShaderType type) const {
 
 static std::vector<std::string> errorProgramVert{
 	"#version 420\n",
-	"$GLMatrices\n",
-	"layout(location =0) in vec3 position;\n",
-	"void main() {\n",
-	" gl_Position = modelviewprojMatrix * vec4(position,1.0);\n",
-	"}"
+		"$GLMatrices\n",
+		"layout(location =0) in vec3 position;\n",
+		"void main() {\n",
+		" gl_Position = modelviewprojMatrix * vec4(position,1.0);\n",
+		"}"
 };
+
+
+static std::vector<std::string> errorProgramVertNoGLMatrices {
+	"#version 420\n",
+		"layout(location =0) in vec3 position;\n",
+		"void main() {\n",
+		" gl_Position = vec4(position,1.0);\n",
+		"}"
+};
+
 
 static std::vector<std::string> errorProgramFrag{
 	"#version 420\n",
-	"out vec4 final_color;\n",
-	"void main() {\n",
-	" final_color = vec4(1, 0, 1, 1);\n",
-	"}"
+		"out vec4 final_color;\n",
+		"void main() {\n",
+		" final_color = vec4(1, 0, 1, 1);\n",
+		"}"
 };
 
 bool Program::compile() {
@@ -237,8 +247,20 @@ bool Program::compile() {
 			// Ha fallado el enlace: imprimir todos los shaders
 			printSrcs(compilationResult);
 		}
-		//ERRT(compilationResult.str());
-		loadStrings(errorProgramVert, errorProgramFrag);
+		pendingConnections.erase(
+			std::remove_if(
+				pendingConnections.begin(),
+				pendingConnections.end(),
+				[](const PendingConnection& pc) {
+					return pc.bindingPoint != UBO_GL_MATRICES_BINDING_INDEX;
+				}), pendingConnections.end());
+		shaders.clear();
+		if (pendingConnections.empty()) {
+			loadStrings(errorProgramVertNoGLMatrices, errorProgramFrag);
+		}
+		else {
+			loadStrings(errorProgramVert, errorProgramFrag);
+		}
 		compile();
 		ERR(compilationResult.str());
 		return true;
@@ -248,7 +270,7 @@ bool Program::compile() {
 	return true;
 }
 
-int Program::getUniformLocation(const std::string &uniform) {
+int Program::getUniformLocation(const std::string& uniform) {
 	if (programId == 0)
 		ERRT("No se puede pedir la posición de un uniform si el shader no está "
 			"enlazado");
@@ -269,7 +291,7 @@ void Program::bindAttribs() {
 		glBindAttribLocation(programId, attribs[i].loc, attribs[i].name.c_str());
 }
 
-void Program::addAttributeLocation(unsigned int loc, const std::string &name) {
+void Program::addAttributeLocation(unsigned int loc, const std::string& name) {
 	PGUPV::Attribute at;
 
 	at.loc = loc;
@@ -285,8 +307,8 @@ Parámetros de entrada:
 -un std::vector de GLuint, con los identificadores de shader a enlazar.
 
 */
-bool Program::linkProgram(const PGUPV::Uints &shids,
-	std::ostream &error_output) {
+bool Program::linkProgram(const PGUPV::Uints& shids,
+	std::ostream& error_output) {
 	GLint linked;
 
 	programId = glCreateProgram();
@@ -296,7 +318,7 @@ bool Program::linkProgram(const PGUPV::Uints &shids,
 	bindAttribs();
 
 	if (!transformVaryings.empty()) {
-		const char **vars = new const char *[transformVaryings.size()];
+		const char** vars = new const char* [transformVaryings.size()];
 		for (unsigned int i = 0; i < transformVaryings.size(); i++) {
 			vars[i] = transformVaryings[i].c_str();
 		}
@@ -312,7 +334,7 @@ bool Program::linkProgram(const PGUPV::Uints &shids,
 
 	if (linked == GL_FALSE) {
 		GLint length;
-		GLchar *log;
+		GLchar* log;
 		glGetProgramiv(programId, GL_INFO_LOG_LENGTH, &length);
 		log = new GLchar[length];
 		glGetProgramInfoLog(programId, length, &length, log);
@@ -326,11 +348,11 @@ bool Program::linkProgram(const PGUPV::Uints &shids,
 	return true;
 }
 
-Program *Program::use(bool reconnectUBOs) {
-  // Si es el mismo programa que hay instalado y no hay que recompilarlo, 
-  // terminar
-  if (this == prevProgram && programId != 0)
-    return this;
+Program* Program::use(bool reconnectUBOs) {
+	// Si es el mismo programa que hay instalado y no hay que recompilarlo, 
+	// terminar
+	if (this == prevProgram && programId != 0)
+		return this;
 
 	if (!programId) {
 		compile();
@@ -345,7 +367,7 @@ Program *Program::use(bool reconnectUBOs) {
 		ERRT("Intentando activar un programa inexistente");
 
 	refreshRoutineUniforms();
-	Program *prev = prevProgram;
+	Program* prev = prevProgram;
 	prevProgram = this;
 	return prev;
 }
@@ -356,7 +378,7 @@ void Program::unUse()
 	glUseProgram(0);
 }
 
-bool Program::bindBlockToBindingPoint(const std::string &blockName,
+bool Program::bindBlockToBindingPoint(const std::string& blockName,
 	GLuint bindingPoint) {
 	if (programId == 0)
 		ERRT("Antes de llamar a Program::bindBlockToBindingPoint debes compilar el programa");
@@ -370,7 +392,7 @@ bool Program::bindBlockToBindingPoint(const std::string &blockName,
 	return true;
 }
 
-void Program::connectUniformBlock(const std::string &blockName,
+void Program::connectUniformBlock(const std::string& blockName,
 	std::shared_ptr<UniformBufferObject> bo,
 	GLuint bindingPoint) {
 	PendingConnection pc;
@@ -380,12 +402,12 @@ void Program::connectUniformBlock(const std::string &blockName,
 	pendingConnections.push_back(pc);
 }
 
-void Program::replaceString(const std::string & replaceThis, const std::string & byThis) {
+void Program::replaceString(const std::string& replaceThis, const std::string& byThis) {
 	replaceString(replaceThis, std::vector<std::string> {byThis});
 }
 
-void Program::replaceString(const std::string &replaceThis,
-	const Strings &byThis) {
+void Program::replaceString(const std::string& replaceThis,
+	const Strings& byThis) {
 	if (!shaders.empty()) {
 		ERRT("No se puede reemplazar la variable " + replaceThis +
 			" porque ya hay shaders cargados");
@@ -405,7 +427,7 @@ void Program::connectUniformBlock(std::shared_ptr<UniformBufferObject> bo,
 bool Program::bindUBOs() {
 
 	for (uint i = 0; i < pendingConnections.size(); i++) {
-		PendingConnection &pc = pendingConnections[i];
+		PendingConnection& pc = pendingConnections[i];
 		if (!bindBlockToBindingPoint(pc.blockName, pc.bindingPoint)) {
 			std::ostringstream os;
 			os << "No se puede vincular el UBO \"" << pc.blockName;
@@ -420,7 +442,7 @@ bool Program::bindUBOs() {
 	return true;
 }
 
-uint Program::getUniformBlockSize(const std::string &blockName) {
+uint Program::getUniformBlockSize(const std::string& blockName) {
 
 	if (programId == 0)
 		return 0;
@@ -433,18 +455,18 @@ uint Program::getUniformBlockSize(const std::string &blockName) {
 	return size;
 }
 
-int Program::getUniformBlockMemberOffset(const std::string &blockName,
-	const std::string &member) {
+int Program::getUniformBlockMemberOffset(const std::string& blockName,
+	const std::string& member) {
 	std::string name = blockName + "." + member;
 	return getUniformBlockMemberOffset(name);
 }
 
-int Program::getUniformBlockMemberOffset(const std::string &member) {
+int Program::getUniformBlockMemberOffset(const std::string& member) {
 	if (programId == 0)
 		return -1;
 
 	CHECK_GL();
-	const char *pname = member.c_str();
+	const char* pname = member.c_str();
 	GLuint idx;
 
 	glGetUniformIndices(programId, 1, &pname, &idx);
@@ -456,7 +478,7 @@ int Program::getUniformBlockMemberOffset(const std::string &member) {
 	return offset;
 }
 
-int Program::getActiveUniformName(uint idx, std::string &name) const {
+int Program::getActiveUniformName(uint idx, std::string& name) const {
 	if (programId == 0)
 		return -1;
 
@@ -491,7 +513,7 @@ std::string UniformInfo::toString() const {
 	return os.str();
 }
 
-std::string UniformInfo::toString(void *bo) const {
+std::string UniformInfo::toString(void* bo) const {
 	std::ostringstream os;
 	GLSLTypeInfo t = PGUPV::getGLSLTypeInfo(type);
 	os << name;
@@ -499,11 +521,11 @@ std::string UniformInfo::toString(void *bo) const {
 		os << ", offset=" << offset;
 	os << ", size=" << size << ", type=" << t.name;
 	os << ", val="
-		<< formatGLSLValue(t, size, reinterpret_cast<char *>(bo) + offset, true);
+		<< formatGLSLValue(t, size, reinterpret_cast<char*>(bo) + offset, true);
 	return os.str();
 }
 
-void Program::printBoundShaderStorageBuffers(std::ostream &os) {
+void Program::printBoundShaderStorageBuffers(std::ostream& os) {
 	os << "\n";
 	os << "BOUND SHADER STORAGE BUFFERS\n";
 	os << "---------------------\n";
@@ -530,7 +552,7 @@ void Program::printBoundShaderStorageBuffers(std::ostream &os) {
       temp << "  " #b ": " << std::to_string(t) << std::endl;                  \
   }
 
-void Program::printBoundImages(std::ostream &os) {
+void Program::printBoundImages(std::ostream& os) {
 	GLint numImageUnits;
 
 	os << "\n";
@@ -572,7 +594,7 @@ void Program::printBoundImages(std::ostream &os) {
 	}
 }
 
-void Program::printBoundTextures(std::ostream &os) {
+void Program::printBoundTextures(std::ostream& os) {
 	GLint numTextureUnits;
 	GLint prevActiveTexture;
 
@@ -636,29 +658,29 @@ glGetFloatv(c, two);                                                           \
 os << #c ": " << two[0] << ", " << two[1] << std::endl;                        \
 }
 
-void Program::printOpenGLInfo(std::ostream &os, bool verbose) {
+void Program::printOpenGLInfo(std::ostream& os, bool verbose) {
 
 	os << std::endl;
 	os << std::string(70, '=') << std::endl;
 	os << "OPENGL INFO" << std::endl;
 	os << std::string(70, '=') << std::endl;
 
-	const char *v;
+	const char* v;
 
 	os << "GL_VENDOR: "
-		<< ((v = reinterpret_cast<const char *>(glGetString(GL_VENDOR))) != NULL
+		<< ((v = reinterpret_cast<const char*>(glGetString(GL_VENDOR))) != NULL
 			? v
 			: "Could not obtain GL_VENDOR") << std::endl;
 	os << "GL_RENDERER: "
-		<< ((v = reinterpret_cast<const char *>(glGetString(GL_RENDERER))) != NULL
+		<< ((v = reinterpret_cast<const char*>(glGetString(GL_RENDERER))) != NULL
 			? v
 			: "Could not obtain GL_RENDERER") << std::endl;
 	os << "GL_VERSION: "
-		<< ((v = reinterpret_cast<const char *>(glGetString(GL_VERSION))) != NULL
+		<< ((v = reinterpret_cast<const char*>(glGetString(GL_VERSION))) != NULL
 			? v
 			: "Could not obtain GL_VERSION") << std::endl;
 	os << "GL_SHADING_LANGUAGE_VERSION: "
-		<< ((v = reinterpret_cast<const char *>(
+		<< ((v = reinterpret_cast<const char*>(
 			glGetString(GL_SHADING_LANGUAGE_VERSION))) != NULL
 			? v
 			: "Could not obtain GL_SHADING_LANGUAGE_VERSION") << std::endl;
@@ -758,17 +780,17 @@ std::string printUniformValue(GLint programId, GLint loc, GLenum type,
 	char vals[sizeof(glm::dmat4)]; // el tipo más grande
 
 	if (t.baseTypeGLEnum == GL_FLOAT) {
-		glGetUniformfv(programId, loc, reinterpret_cast<GLfloat *>(vals));
+		glGetUniformfv(programId, loc, reinterpret_cast<GLfloat*>(vals));
 	}
 	else if (t.baseTypeGLEnum == GL_INT || t.baseTypeGLEnum == 0) {
-		glGetUniformiv(programId, loc, reinterpret_cast<GLint *>(vals));
+		glGetUniformiv(programId, loc, reinterpret_cast<GLint*>(vals));
 		return PGUPV::formatGLSLValue(t, size, &vals[0]);
 	}
 	else if (t.baseTypeGLEnum == GL_UNSIGNED_INT) {
-		glGetUniformuiv(programId, loc, reinterpret_cast<GLuint *>(vals));
+		glGetUniformuiv(programId, loc, reinterpret_cast<GLuint*>(vals));
 	}
 	else if (t.baseTypeGLEnum == GL_BOOL) {
-		glGetUniformiv(programId, loc, reinterpret_cast<GLint *>(vals));
+		glGetUniformiv(programId, loc, reinterpret_cast<GLint*>(vals));
 	}
 	else
 		return "[Tipo desconocido]";
@@ -777,7 +799,7 @@ std::string printUniformValue(GLint programId, GLint loc, GLenum type,
 
 // Imprime en el flujo indicado un montón de información sobre el shader (una
 // vez enlazado)
-void Program::printInfo(std::ostream &os) const {
+void Program::printInfo(std::ostream& os) const {
 
 	os << std::endl;
 	os << std::string(70, '=') << std::endl;
@@ -806,7 +828,7 @@ void Program::printInfo(std::ostream &os) const {
 		glGetActiveAttrib(programId, i, sizeof(buffer), NULL, &size, &type, buffer);
 
 		os << "  [" << i << "]: " << buffer << ", size= " << size;
-		const GLSLTypeInfo &t = getGLSLTypeInfo(type);
+		const GLSLTypeInfo& t = getGLSLTypeInfo(type);
 		os << ", type= " << t.name << std::endl;
 	}
 
@@ -816,7 +838,7 @@ void Program::printInfo(std::ostream &os) const {
 
 	if (uniforms.defaultBlockUniforms.size() > 0) {
 		os << "  Default Uniform Block members:" << std::endl;
-		for (const auto &i : uniforms.defaultBlockUniforms) {
+		for (const auto& i : uniforms.defaultBlockUniforms) {
 			os << "       " << i.toString();
 			GLint loc;
 			loc = glGetUniformLocation(programId, i.name.c_str());
@@ -847,17 +869,17 @@ void Program::printInfo(std::ostream &os) const {
 			continue;
 		}
 		glBindBuffer(GL_COPY_READ_BUFFER, boId);
-		void *boContent = glMapBuffer(GL_COPY_READ_BUFFER, GL_READ_ONLY);
+		void* boContent = glMapBuffer(GL_COPY_READ_BUFFER, GL_READ_ONLY);
 		if (boContent == nullptr) {
 			os << " [Buffer object vacío]\n";
 			continue;
 		}
 		std::sort(uniforms.blocks[i].uniforms.begin(),
 			uniforms.blocks[i].uniforms.end(),
-			[](const UniformInfo &a, const UniformInfo &b) {
-			return a.offset < b.offset;
-		});
-		for (const auto &j : uniforms.blocks[i].uniforms) {
+			[](const UniformInfo& a, const UniformInfo& b) {
+				return a.offset < b.offset;
+			});
+		for (const auto& j : uniforms.blocks[i].uniforms) {
 			os << "       " << j.toString(boContent) << "\n";
 		}
 		glUnmapBuffer(GL_COPY_READ_BUFFER);
@@ -949,9 +971,9 @@ void Program::printInfo(std::ostream &os) const {
 #endif
 }
 
-void findOtherArrayMembers(const GLint programId, const std::string &name,
+void findOtherArrayMembers(const GLint programId, const std::string& name,
 	uint size, GLint type,
-	std::vector<UniformInfo> &dest) {
+	std::vector<UniformInfo>& dest) {
 	size_t posB = name.find_first_of("[");
 	std::string base(name, 0, posB);
 
@@ -1019,7 +1041,7 @@ bool Program::hasShaderType(Shader::ShaderType type) const {
 	return getShader(type).get() != NULL;
 }
 
-void Program::printSrcs(std::ostream &os) const {
+void Program::printSrcs(std::ostream& os) const {
 	for (std::map<Shader::ShaderType, std::shared_ptr<Shader>>::const_iterator i =
 		shaders.cbegin();
 		i != shaders.cend(); ++i) {

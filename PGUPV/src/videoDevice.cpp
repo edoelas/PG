@@ -34,7 +34,7 @@ using namespace std::string_literals;
 bool VideoDevice::libavInitialized = false;
 
 VideoDevice::VideoDevice(unsigned int camId, unsigned int optsId) {
-	
+
 	auto cams = getAvailableCameras();
 	if (camId >= cams.size())
 		ERRT("La cámara no existe");
@@ -48,7 +48,7 @@ VideoDevice::~VideoDevice() {
 	INFO("VideoDevice destruído " + std::to_string(reinterpret_cast<std::uint64_t>(this)));
 }
 
-void VideoDevice::init(const VideoDevice::CameraInfo &ci, size_t optionId) {
+void VideoDevice::init(const VideoDevice::CameraInfo& ci, size_t optionId) {
 	if (!libavInitialized) {
 		initializeLibAv();
 	}
@@ -71,11 +71,11 @@ std::string FourCCToString(uint32_t fourcc)
 }
 
 std::vector<VideoDevice::CameraInfo> VideoDevice::getAvailableCameras() {
-	
+
 	std::vector<VideoDevice::CameraInfo> result;
 
 	//Cap_installCustomLogFunction(myCustomLogFunction);
-	INFO( "OpenPNP Library Version: "s + Cap_getLibraryVersion());
+	INFO("OpenPNP Library Version: "s + Cap_getLibraryVersion());
 	//Cap_setLogLevel(8);
 
 	CapContext ctx = Cap_createContext();
@@ -86,14 +86,14 @@ std::vector<VideoDevice::CameraInfo> VideoDevice::getAvailableCameras() {
 	{
 		VideoDevice::CameraInfo info;
 		info.name = Cap_getDeviceName(ctx, i);
-		#ifdef _WIN32
+#ifdef _WIN32
 		info.devicePath = Cap_getDeviceUniqueID(ctx, i);
-		#elif __linux__
+#elif __linux__
 		info.devicePath = "/dev/video" + std::to_string(i);
-		#else
+#else
 		static_assert(false, "Unsupported");
-		#endif
-		
+#endif
+
 
 		// show all supported frame buffer formats
 		int32_t nFormats = Cap_getNumFormats(ctx, i);
@@ -145,7 +145,7 @@ void VideoDevice::openDevice(const VideoDevice::CameraInfo& ci, size_t optsId) {
 	}
 	else if (opt.fourcc == "MJPG")
 	{
-		var = "pixel_format";
+		var = "vcodec";
 		val = "mjpeg";
 	}
 	else if (opt.fourcc == "RGB3")
