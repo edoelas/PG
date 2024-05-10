@@ -20,7 +20,7 @@ void main() {
   }
 
   //Vignetting
-  // TODO: tal vez se pueda hacer con un bucle
+  // TODO: tal vez se pueda hacer con un bucle	
   // TODO: las esquinas estan achatadas
   float r = 0.2; // radio
   float md = distance(vec2(r, r), vec2(0.0, 0.0)); // maximum distance

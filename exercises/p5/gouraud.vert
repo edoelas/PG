@@ -14,10 +14,10 @@ vec4 iluminacion(vec3 pos, vec3 N, vec3 V) {
   // Componente emisiva del material
   vec4 color = emissive;
   for (int i = 0; i < lights.length(); i++) {
-    // Si la fuente está apagada, no tenerla en cuenta
+    // Si la fuente esta apagada, no tenerla en cuenta
     if (lights[i].enabled == 0)
       continue;
-    // Vector iluminación (desde vértice a la fuente)
+    // Vector iluminacion (desde vertice a la fuente)
     vec3 L = normalize(vec3(lights[i].positionEye) - pos);
     // Multiplicador de la componente difusa
     float diffuseMult = max(dot(N, L), 0.0);
@@ -38,13 +38,13 @@ vec4 iluminacion(vec3 pos, vec3 N, vec3 V) {
 }
 
 void main() {
-  // Normal en el espacio de la cámara
+  // Normal en el espacio de la camara
   vec3 eN = normalize(normalMatrix * normal);
-  // Vértice en el espacio de la cámara
+  // Vertice en el espacio de la camara
   vec3 eposition = vec3(modelviewMatrix * position);
-  // Vector vista (desde vértice a la cámara)
+  // Vector vista (desde vertice a la camara)
   vec3 V = normalize(-eposition.xyz);
-  // Cálculo de la iluminación
+  // Calculo de la iluminacion
   color = iluminacion(eposition, eN, V);
   gl_Position = modelviewprojMatrix * position;
 }

@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.5)
 
 project(p6)
 
-file (GLOB SOURCES "*.cpp" "*.h" "*.hpp" "*.vert" "*.frag")
+file (GLOB SOURCES "*.cpp" "*.h" "*.hpp" "*.vert" "*.frag" "*.geom")
 
 add_executable(p6 ${SOURCES})
 
