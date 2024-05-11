@@ -87,7 +87,7 @@ void MyRender::setup() {
 
 	// Este shader se encarga de calcular la iluminación, usando
 	// el algoritmo de Gouraud 
-	gouraud.loadFiles(App::examplesDir() + "ej5-2/gouraud");
+	gouraud.loadFiles(App::App::exercisesDir() + "p5/gouraud");
 	gouraud.compile();
 
 	// Definimos la posición y atributos de las fuentes

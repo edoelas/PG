@@ -32,8 +32,27 @@ vec4 iluminacion(vec3 pos, vec3 N, vec3 V) {
     color += lights[i].ambient * ambient +
              lights[i].diffuse * diffuse * diffuseMult +
              lights[i].specular * specular * specularMult;
-  }
 
+    // factor de atenuación TODO: funciona?
+    float d = length(vec3(lights[i].positionEye) - pos);
+    float attenuation = 1.0 / max(1.0, lights[i].attenuation.x +
+                                      lights[i].attenuation.y * d +
+                                      lights[i].attenuation.z * d * d);
+    color *= attenuation;
+
+    // efecto foco
+    if(lights[i].spotCutoff < 180.0) {
+      vec3 L = normalize(vec3(lights[i].positionEye) - pos);
+      float cosTheta = dot(-L, lights[i].spotDirectionEye);
+      // comprobamos si el vertice esta dentro del cono de luz
+      if(max(cosTheta,0) >= lights[i].spotCosCutoff) {
+        float spot = pow(max(cosTheta,0), lights[i].spotExponent);
+        color *= spot;
+      }else{
+        color = vec4(0.0, 0.0, 0.0, 1.0);
+      }
+    }
+  }
   return color;
 }
 
