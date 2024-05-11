@@ -5,9 +5,12 @@ in TESE_OUT {
 };
 
 uniform	sampler2D texUnitHeightMap;
+uniform	sampler1D texUnitcolorScaleHM;
 out vec4 finalColor;
 
-
 void main() {
-	finalColor = texture(texUnitHeightMap, textureCoord).rrra; 
+	// TODO: solucion palera a las cumbres moradas
+	float height = texture(texUnitHeightMap, textureCoord).r * 0.99;
+	vec4 colorScale = texture(texUnitcolorScaleHM, height);
+	finalColor = colorScale;
 }
