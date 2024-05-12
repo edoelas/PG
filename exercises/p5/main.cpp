@@ -37,8 +37,9 @@ private:
 	// Uniform Buffer Objects
 	std::shared_ptr<GLMatrices> mats;
 	std::shared_ptr<UBOLightSources> luces;
+	std::shared_ptr<UBOMaterial> material;
 
-	Program gouraud, constant;
+	Program gouraud, phong, constant;
 	Cylinder cone;
 	Sphere sph;
 	Box box;
@@ -49,6 +50,7 @@ private:
 	void buildGUI();
 	void updateLightPosition(const glm::mat4 &viewMatrix);
 	void configureLights();
+	std::shared_ptr<CheckBoxWidget> shaderSelector;
 };
 
 void MyRender::setup() {
@@ -67,28 +69,34 @@ void MyRender::setup() {
 	box.accept([goma_azul](Mesh &m) { m.setMaterial(goma_azul); });
 	suelo.accept([perla](Mesh &m) { m.setMaterial(perla); });
 
-	// Definimos la posición de los atributos
-	gouraud.addAttributeLocation(Mesh::VERTICES, "position");
-	gouraud.addAttributeLocation(Mesh::NORMALS, "normal");
-
 	// Para conectar un bloque de uniform con un shader que lo ha incluido
 	// con una declaración tipo: $Material o $GLMatrices, se llama a
 	// connectUniformBlock con un objeto UniformBufferObject y
 	// con un índice del punto de vinculación de matrices, antes de compilar
 	// el shader
 	mats = GLMatrices::build();
-	gouraud.connectUniformBlock(mats, UBO_GL_MATRICES_BINDING_INDEX);
-
 	luces = UBOLightSources::build();
+	material = UBOMaterial::build();
+
+	// Definimos la posición de los atributos
+	gouraud.addAttributeLocation(Mesh::VERTICES, "position");
+	gouraud.addAttributeLocation(Mesh::NORMALS, "normal");
+	gouraud.connectUniformBlock(mats, UBO_GL_MATRICES_BINDING_INDEX);
 	gouraud.connectUniformBlock(luces, UBO_LIGHTS_BINDING_INDEX);
-
 	// Creamos un material temporal para sustituir la declaración del shader
-	gouraud.connectUniformBlock(UBOMaterial::build(), UBO_MATERIALS_BINDING_INDEX);
-
-	// Este shader se encarga de calcular la iluminación, usando
-	// el algoritmo de Gouraud 
+	gouraud.connectUniformBlock(material, UBO_MATERIALS_BINDING_INDEX);
 	gouraud.loadFiles(App::App::exercisesDir() + "p5/gouraud");
 	gouraud.compile();
+
+
+	// PHONG
+	phong.addAttributeLocation(Mesh::VERTICES, "position");
+	phong.addAttributeLocation(Mesh::NORMALS, "normal");
+	phong.connectUniformBlock(mats, UBO_GL_MATRICES_BINDING_INDEX);
+	phong.connectUniformBlock(luces, UBO_LIGHTS_BINDING_INDEX);
+	phong.connectUniformBlock(material, UBO_MATERIALS_BINDING_INDEX);
+	phong.loadFiles(App::App::exercisesDir() + "p5/phong");
+	phong.compile();
 
 	// Definimos la posición y atributos de las fuentes
 	configureLights();
@@ -228,7 +236,11 @@ void MyRender::render() {
 	updateLightPosition(viewMatrix);
 
 	// Primero dibujamos los objetos con iluminación
-	gouraud.use();
+	// Seleccionamos el shader
+	if (shaderSelector->get())
+		phong.use();
+	else
+		gouraud.use();
 
 	// Cono rojo
 	mats->pushMatrix(GLMatrices::MODEL_MATRIX);
@@ -282,6 +294,11 @@ void MyRender::buildGUI() {
 
 	// Este widget permite definir los parámetros de las fuentes de luz
 	panel->addWidget(std::make_shared<LightSourceWidget>(luces, 10.f, getCameraHandler()->getCameraPtr()));
+
+	// Add checkbox to select shader
+	shaderSelector = std::make_shared<CheckBoxWidget>("Phong", false);
+	panel->addWidget(shaderSelector);
+
 }
 
 int main(int argc, char *argv[]) {

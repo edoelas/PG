@@ -4,10 +4,9 @@ $GLMatrices
 $Lights
 $Material
 
-in vec4 position;
-in vec3 normal;
-
-out vec4 color;
+in vec3 N;
+in vec3 pos;
+out vec4 fragColor;
 
 // Suponiendo fuentes puntuales
 vec4 iluminacion(vec3 pos, vec3 N, vec3 V) {
@@ -57,13 +56,11 @@ vec4 iluminacion(vec3 pos, vec3 N, vec3 V) {
 }
 
 void main() {
-  // Normal en el espacio de la camara
-  vec3 eN = normalize(normalMatrix * normal);
-  // Vertice en el espacio de la camara
-  vec3 eposition = vec3(modelviewMatrix * position);
-  // Vector vista (desde vertice a la camara)
-  vec3 V = normalize(-eposition.xyz);
-  // Calculo de la iluminacion
-  color = iluminacion(eposition, eN, V);
-  gl_Position = modelviewprojMatrix * position;
+  // Renormalizar N
+  vec3 Nn = normalize(N);
+  // calcular L y V en el espacio de la camara
+  vec3 V = normalize(-pos);
+  vec3 L = normalize(vec3(lights[0].positionEye) - pos);
+  // Calcular iluminacion
+  fragColor = iluminacion(pos, Nn, V);
 }
