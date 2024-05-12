@@ -25,7 +25,7 @@ private:
   std::shared_ptr<GLMatrices> mats;
   std::shared_ptr<Program> ashader;
   std::shared_ptr<TextureVideo> videoFeed;
-  GLint texUnitLoc;
+  GLint texUnitLoc, windowSizeLoc;
   void buildGUI();
   Rect sp{ 2.f, 2.f };
 };
@@ -49,9 +49,12 @@ void MyRender::setup() {
 
   // Localización de los uniform (posición de la luz y unidad de textura)
   texUnitLoc = ashader->getUniformLocation("texUnit");
+  windowSizeLoc = ashader->getUniformLocation("windowSize");
   // Comunicamos la unidad de textura al shader
   ashader->use();
   glUniform1i(texUnitLoc, 0);
+  glUniform2f(windowSizeLoc, 1920,1080);
+
 
   auto sources = media::VideoDevice::getAvailableCameras();
   if (sources.empty()) {
