@@ -21,7 +21,7 @@ void main() {
     }
 
     //Vignetting
-    // TODO: tal vez se pueda hacer con un bucle	
+    // TODO: bucle	
     float r = 100; // radio
     float md = distance(vec2(r, r), vec2(0.0, 0.0)); // maximum distance
 

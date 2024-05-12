@@ -17,7 +17,7 @@ vec4 iluminacion(vec3 pos, vec3 N, vec3 V) {
     if (lights[i].enabled == 0)
       continue;
     // Vector iluminacion (desde vertice a la fuente)
-    vec3 L = normalize(vec3(lights[i].positionEye) - pos);
+    vec3 L = lights[i].directional == 1 ? normalize(vec3(lights[i].positionEye)) : normalize(vec3(lights[i].positionEye) - pos);
     // Multiplicador de la componente difusa
     float diffuseMult = max(dot(N, L), 0.0);
     float specularMult = 0.0;
@@ -32,6 +32,7 @@ vec4 iluminacion(vec3 pos, vec3 N, vec3 V) {
              lights[i].diffuse * diffuse * diffuseMult +
              lights[i].specular * specular * specularMult;
 
+    if (lights[i].directional == 1) continue; // si es direccional se ignora atenuación y foco
     // factor de atenuación
     float d = length(vec3(lights[i].positionEye) - pos); // TODO:
     float attenuation = 1.0 / max(1.0, lights[i].attenuation.x +
@@ -41,11 +42,10 @@ vec4 iluminacion(vec3 pos, vec3 N, vec3 V) {
 
     // efecto foco
     if(lights[i].spotCutoff < 180.0) {
-      vec3 L = normalize(pos - vec3(lights[i].positionEye));
-      float LD = dot(L, lights[i].spotDirectionEye);
+      float mLD = max(dot(-L, lights[i].spotDirectionEye),0);
       // comprobamos si el vertice esta dentro del cono de luz
-      if(max(LD,0) >= lights[i].spotCosCutoff) {
-        float spot = pow(max(LD,0), lights[i].spotExponent);
+      if(mLD >= lights[i].spotCosCutoff) {
+        float spot = pow(mLD, lights[i].spotExponent);
         color *= spot;
       }else{
         color *= 0.0;
@@ -60,7 +60,6 @@ void main() {
   vec3 Nn = normalize(N);
   // calcular L y V en el espacio de la camara
   vec3 V = normalize(-pos);
-  vec3 L = normalize(vec3(lights[0].positionEye) - pos);
   // Calcular iluminacion
   fragColor = iluminacion(pos, Nn, V);
 }
