@@ -84,6 +84,7 @@ void MyRender::setup() {
 	heightMap.bind(GL_TEXTURE0);
 
 	colorScaleHM.loadImage(App::assetsDir() + "images/colorScaleHM.png");
+	colorScaleHM.setWrapS(GL_CLAMP_TO_EDGE);
 	colorScaleHM.bind(GL_TEXTURE1);
 
 	auto camera = std::make_shared<WalkCameraHandler>(20.0f); // Altura inicial de la cámara

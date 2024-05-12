@@ -53,7 +53,6 @@ void MyRender::setup() {
   // Comunicamos la unidad de textura al shader
   ashader->use();
   glUniform1i(texUnitLoc, 0);
-  glUniform2f(windowSizeLoc, 1920,1080);
 
 
   auto sources = media::VideoDevice::getAvailableCameras();
@@ -78,6 +77,7 @@ void MyRender::render() {
 
 void MyRender::reshape(uint w, uint h) {
   glViewport(0, 0, w, h);
+  glUniform2f(windowSizeLoc, w, h);
 }
 
 
