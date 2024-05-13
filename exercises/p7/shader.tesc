@@ -31,12 +31,10 @@ void main() {
 	gl_out[gl_InvocationID].gl_Position = gl_in[gl_InvocationID].gl_Position;
 	to_tese[gl_InvocationID].textureCoord = from_vs[gl_InvocationID].textureCoord;
 
-	// TODO: Se esta usando el clasificador precise bien?
-
 	// inner tesellation
 	if (gl_InvocationID == 0) {
 		vec4 viewPosition = viewMatrix * modelMatrix * gl_in[0].gl_Position;
-		precise float distanceToCamera = distance(viewPosition.xyz, vec3(0.0, 0.0, 0.0));
+		float distanceToCamera = distance(viewPosition.xyz, vec3(0.0, 0.0, 0.0));
 		float tessellationLevel = calculateTessellationLevel(distanceToCamera);
 
 		gl_TessLevelInner[0] = tessellationLevel;
@@ -50,8 +48,8 @@ void main() {
 		vec4 pos1 = viewMatrix * modelMatrix * gl_in[i].gl_Position;
 		vec4 pos2 = viewMatrix * modelMatrix * gl_in[next].gl_Position;
 
-		precise float dis1  = distance(pos1.xyz, vec3(0.0, 0.0, 0.0));
-		precise float dis2  = distance(pos2.xyz, vec3(0.0, 0.0, 0.0));
+		float dis1  = distance(pos1.xyz, vec3(0.0, 0.0, 0.0));
+		float dis2  = distance(pos2.xyz, vec3(0.0, 0.0, 0.0));
 		
 		float distanceToCamera = max(dis1, dis2);
 		gl_TessLevelOuter[next] = calculateTessellationLevel(distanceToCamera);
