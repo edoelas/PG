@@ -34,7 +34,7 @@ vec4 iluminacion(vec3 pos, vec3 N, vec3 V) {
 
     if (lights[i].directional == 1) continue; // si es direccional se ignora atenuación y foco
     // factor de atenuación
-    float d = length(vec3(lights[i].positionEye) - pos); // TODO:
+    float d = length(vec3(lights[i].positionEye) - pos);
     float attenuation = 1.0 / max(1.0, lights[i].attenuation.x +
                                       lights[i].attenuation.y * d +
                                       lights[i].attenuation.z * d * d);
