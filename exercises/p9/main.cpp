@@ -56,7 +56,7 @@ private:
 	Rect suelo;
 
 	// Framebuffer object y textura para generar el shadow map
-	FBO fbo;
+	FBO fbo1, fbo2;
 	std::shared_ptr<Texture2D> depthTexture1, depthTexture2;
 	uint currentTextureSize;
 	// Programas
@@ -96,22 +96,22 @@ void MyRender::prepareFBO(uint width, uint height) {
 	// Función de comparación
 	depthTexture1->setCompareFunc(GL_LEQUAL);
 	// Vinculamos la textura al punto de vinculación del depth buffer del FBO
-	fbo.attach(GL_DEPTH_ATTACHMENT, depthTexture1);
+	fbo1.attach(GL_DEPTH_ATTACHMENT, depthTexture1);
 	// Comprobamos que el FBO esté completo
-	if (!fbo.isComplete())
+	if (!fbo1.isComplete())
 		ERRT("FBO incompleto");
 
-	//// Esta textura contendrá el shadow map 2
-	//depthTexture2 = std::shared_ptr<Texture2D>(
-	//	new Texture2D(GL_LINEAR, GL_LINEAR, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE));
-	//depthTexture2->allocate(width, height, GL_DEPTH_COMPONENT32);
-	//// Función de comparación
-	//depthTexture2->setCompareFunc(GL_LEQUAL);
-	//// Vinculamos la textura al punto de vinculación del depth buffer del FBO
-	//fbo.attach(GL_DEPTH_ATTACHMENT, depthTexture2);
-	//// Comprobamos que el FBO esté completo
-	//if (!fbo.isComplete())
-	//	ERRT("FBO incompleto");
+	// Esta textura contendrá el shadow map 2
+	depthTexture2 = std::shared_ptr<Texture2D>(
+		new Texture2D(GL_LINEAR, GL_LINEAR, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE));
+	depthTexture2->allocate(width, height, GL_DEPTH_COMPONENT32);
+	// Función de comparación
+	depthTexture2->setCompareFunc(GL_LEQUAL);
+	// Vinculamos la textura al punto de vinculación del depth buffer del FBO
+	fbo2.attach(GL_DEPTH_ATTACHMENT, depthTexture2);
+	// Comprobamos que el FBO esté completo
+	if (!fbo2.isComplete())
+		ERRT("FBO incompleto");
 }
 
 void MyRender::setup() {
@@ -250,7 +250,7 @@ static const glm::mat4 scaleBiasMatrix(0.5, 0.0, 0.0, 0.0, 0.0, 0.5, 0.0, 0.0,
 void MyRender::render() {
 
 	// Creando el shadow map, desde el punto de vista de la fuente 1
-	fbo.bind(GL_DRAW_FRAMEBUFFER);
+	fbo1.bind(GL_DRAW_FRAMEBUFFER);
 	glViewport(0, 0, currentTextureSize, currentTextureSize);
 	glClear(GL_DEPTH_BUFFER_BIT);
 	// Completamos la matriz de sombra usando la posición actual de la luz
@@ -262,16 +262,24 @@ void MyRender::render() {
 	glEnable(GL_POLYGON_OFFSET_FILL);
 	drawScene(shadowMats, false);
 	glDisable(GL_POLYGON_OFFSET_FILL);
+	fbo1.unbind(GL_DRAW_FRAMEBUFFER);
+
 
 	// Creando el shadow map, desde el punto de vista de la fuente 2
-	//shadowMats->setMatrix(
-	//	GLMatrices::VIEW_MATRIX,
-	//	glm::lookAt(vec3(lightPosition2), vec3(0.0), vec3(0.0, 1.0, 0.0)));
-	
+	fbo2.bind(GL_DRAW_FRAMEBUFFER);
+	glViewport(0, 0, currentTextureSize, currentTextureSize);
+	glClear(GL_DEPTH_BUFFER_BIT);
+	// Completamos la matriz de sombra usando la posición actual de la luz
+	shadowMats->setMatrix(
+		GLMatrices::VIEW_MATRIX,
+		glm::lookAt(vec3(lightPosition2), vec3(0.0), vec3(0.0, 1.0, 0.0)));
+	shadowShader.use();
+	glDrawBuffer(GL_NONE);
+	glEnable(GL_POLYGON_OFFSET_FILL);
+	drawScene(shadowMats, false);
+	glDisable(GL_POLYGON_OFFSET_FILL);
+	fbo2.unbind(GL_DRAW_FRAMEBUFFER);
 
-
-	// Desvinculamos el FBO (activando el Framebuffer por defecto)
-	fbo.unbind(GL_DRAW_FRAMEBUFFER);
 
 	// Dibujamos la escena normalmente
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
