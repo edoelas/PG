@@ -147,8 +147,7 @@ set_target_properties(${libname} PROPERTIES
 set(EXTRA_LIBS ${EXTRA_LIBS} ${libname})
 endforeach()
 
-set (EXTRA_LIBS ${EXTRA_LIBS} SDL2::SDL2)
-set (EXTRA_LIBS ${EXTRA_LIBS} SDL2_ttf::SDL2_ttf)
+set (EXTRA_LIBS ${EXTRA_LIBS} SDL2::SDL2 SDL2_ttf)
 
 else()
 find_package(FREEIMAGE REQUIRED)
@@ -174,7 +173,7 @@ target_link_libraries(dearimgui PRIVATE SDL2::SDL2)
 
 if (MSVC)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
-set_target_properties(assimp gli_dummy glm dearimgui GLEW sdl_headers_copy SDL2 SDL2_ttf SDL2main SDL2-static uninstall zlibstatic UpdateAssimpLibsDebugSymbolsAndDLLs openpnp-capture openpnp-capture-test PROPERTIES FOLDER "deps")
+set_target_properties(assimp gli_dummy glm dearimgui GLEW sdl_headers_copy SDL2_ttf SDL2main SDL2 uninstall zlibstatic UpdateAssimpLibsDebugSymbolsAndDLLs openpnp-capture openpnp-capture-test PROPERTIES FOLDER "deps")
 set_target_properties(PROPERTIES FOLDER "deps")
 set_target_properties(PROPERTIES FOLDER "deps")
 #set_target_properties(glm_shared PROPERTIES FOLDER "deps")
