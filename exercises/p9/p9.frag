@@ -3,7 +3,7 @@
 $Lights
 $Material
 
-uniform sampler2DShadow depthTexture;
+uniform sampler2DShadow depthTexture1;
 
 in vec3 N, V;
 in vec3 epos;
@@ -36,6 +36,6 @@ void main() {
   nN = normalize(N);
   nV = normalize(V);
 
-  float f = textureProj(depthTexture, spos);
+  float f = textureProj(depthTexture1, spos);
   fragColor = iluminacion(epos, nN, nV, f);
 }

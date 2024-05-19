@@ -2,7 +2,7 @@
 
 $GLMatrices
 
-uniform mat4 shadowMatrix;
+uniform mat4 shadowMatrix1;
 
 in vec4 position;
 in vec3 normal;
@@ -17,7 +17,7 @@ void main() {
   // Vértice en el espacio de la cámara
   epos = vec3(modelviewMatrix * position);
   // Posición del vértice en el espacio de clip escalado de la fuente
-  spos = shadowMatrix * modelMatrix * position;
+  spos = shadowMatrix1 * modelMatrix * position;
   // Vector vista (desde vértice a la cámara)
   V = normalize(-epos);
   gl_Position = modelviewprojMatrix * position;
