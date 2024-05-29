@@ -22,12 +22,12 @@ void main() {
   // Vector vista (desde vértice a la cámara)
   V1 = normalize(-epos1);
 
-    // Normal en el espacio de la cámara
+  // Normal en el espacio de la cámara
   N2 = normalize(normalMatrix * normal);
   // Vértice en el espacio de la cámara
   epos2 = vec3(modelviewMatrix * position);
   // Posición del vértice en el espacio de clip escalado de la fuente
-  spos2 = shadowMatrix1 * modelMatrix * position;
+  spos2 = shadowMatrix2 * modelMatrix * position;
   // Vector vista (desde vértice a la cámara)
   V2 = normalize(-epos2);
 

@@ -99,7 +99,7 @@ void MyRender::prepareFBO(uint width, uint height) {
 	fbo1.attach(GL_DEPTH_ATTACHMENT, depthTexture1);
 	// Comprobamos que el FBO esté completo
 	if (!fbo1.isComplete())
-		ERRT("FBO incompleto");
+		ERRT("FBO1 incompleto");
 
 	// Esta textura contendrá el shadow map 2
 	depthTexture2 = std::shared_ptr<Texture2D>(
@@ -111,7 +111,7 @@ void MyRender::prepareFBO(uint width, uint height) {
 	fbo2.attach(GL_DEPTH_ATTACHMENT, depthTexture2);
 	// Comprobamos que el FBO esté completo
 	if (!fbo2.isComplete())
-		ERRT("FBO incompleto");
+		ERRT("FBO2 incompleto");
 }
 
 void MyRender::setup() {
@@ -165,19 +165,24 @@ void MyRender::setup() {
 
 	// Localización del uniform con la matriz de sombra
 	shadowMatrixLoc1 = gshader.getUniformLocation("shadowMatrix1");
-	shadowMatrixLoc2 = gshader.getUniformLocation("shadowMatrix2");
-	// Instalamos el shadow map en la unidad de textura 3
 	GLint textureUnit1 = gshader.getUniformLocation("depthTexture1");
 	glUniform1i(textureUnit1, 3);
+	shadowMatrixLoc2 = gshader.getUniformLocation("shadowMatrix2");
 	GLint textureUnit2 = gshader.getUniformLocation("depthTexture2");
 	glUniform1i(textureUnit2, 4);
 
 	// Definición de los parámetros que no cambian de la fuente
-	LightSourceParameters lp;
-	lp.ambient = vec4(.3, .3, .3, 1.0);
-	lp.diffuse = vec4(0.5, 0.5, 0.5, 1.0);
-	lp.specular = vec4(0.8, 0.8, 0.8, 1.0);
-	luces->setLightSource(0, lp);
+	LightSourceParameters lp1;
+	lp1.ambient = vec4(.3, .3, .3, 1.0);
+	lp1.diffuse = vec4(0.5, 0.5, 0.5, 1.0);
+	lp1.specular = vec4(0.8, 0.8, 0.8, 1.0);
+	luces->setLightSource(0, lp1);
+
+	LightSourceParameters lp2;
+	lp2.ambient = vec4(.3, .3, .3, 1.0);
+	lp2.diffuse = vec4(0.5, 0.5, 0.5, 1.0);
+	lp2.specular = vec4(0.8, 0.8, 0.8, 1.0);
+	luces->setLightSource(1, lp2);
 
 	// Este shader se encargará de calcular el shadow map
 
@@ -299,15 +304,18 @@ void MyRender::render() {
 	mats->setMatrix(GLMatrices::VIEW_MATRIX, viewMatrix);
 
 	// Actualizamos la posición de la luz en el UBO
-	LightSourceParameters lp = luces->getLightSource(0);
-	lp.positionWorld = lightPosition1;
-	lp.positionEye = viewMatrix * lightPosition1;
-	luces->setLightSource(0, lp);
-
+	LightSourceParameters lp1 = luces->getLightSource(0);
+	lp1.positionWorld = lightPosition1;
+	lp1.positionEye = viewMatrix * lightPosition1;
+	luces->setLightSource(0, lp1);
 	// Calculando la matriz de sombra
-	//TODO: esto también se duplica???
 	glm::mat4 shadowMatrix1 =
 		scaleBiasMatrix * shadowMats1->getMatrix(GLMatrices::MODELVIEWPROJ_MATRIX);
+
+	LightSourceParameters lp2 = luces->getLightSource(1);
+	lp2.positionWorld = lightPosition2;
+	lp2.positionEye = viewMatrix * lightPosition2;
+	luces->setLightSource(1, lp2);
 
 	glm::mat4 shadowMatrix2 =
 		scaleBiasMatrix * shadowMats2->getMatrix(GLMatrices::MODELVIEWPROJ_MATRIX);
@@ -317,17 +325,16 @@ void MyRender::render() {
 	gshader.use();
 	glUniformMatrix4fv(shadowMatrixLoc1, 1, GL_FALSE, &shadowMatrix1[0][0]);
 	depthTexture1->bind(GL_TEXTURE3);
-	glUniformMatrix4fv(shadowMatrixLoc2, 2, GL_FALSE, &shadowMatrix2[0][0]);
-	depthTexture2->bind(GL_TEXTURE4);
-
-	// Modo de comparación
 	depthTexture1->setCompareMode(GL_COMPARE_REF_TO_TEXTURE);
+	glUniformMatrix4fv(shadowMatrixLoc2, 1, GL_FALSE, &shadowMatrix2[0][0]);
+	depthTexture2->bind(GL_TEXTURE4);
+	depthTexture2->setCompareMode(GL_COMPARE_REF_TO_TEXTURE);
+
 	drawScene(mats);
+	
+	depthTexture2->setCompareMode(GL_NONE);
 	depthTexture1->setCompareMode(GL_NONE);
 
-	depthTexture2->setCompareMode(GL_COMPARE_REF_TO_TEXTURE);
-	drawScene(mats);
-	depthTexture2->setCompareMode(GL_NONE);
 
 	// A partir de aquí se dibuja la fuente de luz y el shadow map
 	// Dibujamos la fuente (sin iluminación)
@@ -348,6 +355,7 @@ void MyRender::render() {
 		glDisable(GL_DEPTH_TEST);
 		zshader->use();
 		zbuffer1.render();
+		zbuffer2.render();
 		glEnable(GL_DEPTH_TEST);
 	}
 
