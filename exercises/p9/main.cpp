@@ -202,7 +202,7 @@ void MyRender::setup() {
 	shadowMats2->setMatrix(
 		GLMatrices::PROJ_MATRIX,
 		glm::frustum(-0.7f, .7f, -.7f, .7f, 1.5f, FRUSTUM_DEPTH));
-	shadowShader.connectUniformBlock(shadowMats2, UBO_GL_MATRICES_BINDING_INDEX+1);
+	//shadowShader.connectUniformBlock(shadowMats2, UBO_GL_MATRICES_BINDING_INDEX+1);
 	shadowShader.addAttributeLocation(Mesh::VERTICES, "position");
 	shadowShader.loadFiles(App::exercisesDir() + "p9/shadowMap");
 	shadowShader.compile();
@@ -355,7 +355,7 @@ void MyRender::render() {
 		glDisable(GL_DEPTH_TEST);
 		zshader->use();
 		zbuffer1.render();
-		zbuffer2.render();
+		//zbuffer2.render();
 		glEnable(GL_DEPTH_TEST);
 	}
 
@@ -376,7 +376,7 @@ void MyRender::reshape(uint w, uint h) {
 void MyRender::buildGUI() {
 	auto panel = addPanel("Shadow mapping");
 	panel->setPosition(580, 10);
-	showDepthMap = std::make_shared<CheckBoxWidget>("Mostrar shadowmap", false);
+	showDepthMap = std::make_shared<CheckBoxWidget>("Mostrar shadowmap", true);
 	panel->addWidget(showDepthMap);
 
 	panel->addWidget(std::make_shared<CheckBoxWidget>("Grises", false, zshader, "grayScale"));
