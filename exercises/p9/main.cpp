@@ -84,7 +84,7 @@ private:
 
 void MyRender::update(uint64_t) {
 	// Cálculo de la posición de la luz
-	lightPosition1 = ci.interpolate(App::getInstance().getAppTime());
+	lightPosition1 = ci.interpolate(App::getInstance().getAppTime()/5);
 	lightPosition2 = vec4(-lightPosition1.z, lightPosition1.y, lightPosition1.x, 1.0);
 }
 
@@ -193,7 +193,7 @@ void MyRender::setup() {
 	// usando el menor volumen posible. Aquí lo definimos estáticamente.
 	shadowMats1->setMatrix(
 		GLMatrices::PROJ_MATRIX,
-		glm::frustum(-0.7f, .7f, -.7f, .7f, 1.5f, FRUSTUM_DEPTH));
+		glm::frustum(-0.7f, .7f, -.7f, .7f, 1.3f, FRUSTUM_DEPTH));
 	shadowShader.connectUniformBlock(shadowMats1, UBO_GL_MATRICES_BINDING_INDEX);
 
 	shadowMats2 = GLMatrices::build();
@@ -201,8 +201,9 @@ void MyRender::setup() {
 	// usando el menor volumen posible. Aquí lo definimos estáticamente.
 	shadowMats2->setMatrix(
 		GLMatrices::PROJ_MATRIX,
-		glm::frustum(-0.7f, .7f, -.7f, .7f, 1.5f, FRUSTUM_DEPTH));
-	//shadowShader.connectUniformBlock(shadowMats2, UBO_GL_MATRICES_BINDING_INDEX+1);
+		glm::frustum(-0.7f, .7f, -.7f, .7f, 1.3f, FRUSTUM_DEPTH));
+	shadowShader.connectUniformBlock(shadowMats2, UBO_GL_MATRICES_BINDING_INDEX);
+
 	shadowShader.addAttributeLocation(Mesh::VERTICES, "position");
 	shadowShader.loadFiles(App::exercisesDir() + "p9/shadowMap");
 	shadowShader.compile();
