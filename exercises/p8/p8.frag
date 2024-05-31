@@ -16,13 +16,8 @@ in vec3 V;
 
 out vec4 fragColor;
 
-vec4 iluminacion(vec3 L, vec3 N, vec3 V) {
-    vec4 color = vec4(1.0,1.0,1.0, 1.0);
-    // Si la fuente esta apagada, no tenerla en cuenta
-    if (lights[i].enabled == 0)
-        continue;
-    // Vector iluminacion (desde vertice a la fuente)
-//    vec3 L = normalize(vec3(lights[i].positionEye) - pos);
+vec4 iluminacion(vec3 L, vec3 N, vec3 V, vec4 color, float d) {
+    
     // Multiplicador de la componente difusa
     float diffuseMult = max(dot(N, L), 0.0);
     float specularMult = 0.0;
@@ -30,19 +25,18 @@ vec4 iluminacion(vec3 L, vec3 N, vec3 V) {
       // Multiplicador de la componente especular
       vec3 R = reflect(-L, N);
       specularMult = max(0.0, dot(R, V));
-      specularMult = pow(specularMult, 0);  //TODO: shininess
+      specularMult = pow(specularMult, 0.5);  //TODO: shininess
     }
 
-    color += lights[i].ambient * 0 +
-             lights[i].diffuse * 0 * diffuseMult +
-             lights[i].specular * 1 * specularMult;
+    color += lights[0].ambient * 0 +
+             lights[0].diffuse * 0.1 * diffuseMult +
+             lights[0].specular * 0.2 * specularMult;
 
-    // factor de atenuación
-//    float d = length(vec3(lights[i].positionEye) - pos);
-//    float attenuation = 1.0 / max(1.0, lights[i].attenuation.x +
-//                                      lights[i].attenuation.y * d +
-//                                      lights[i].attenuation.z * d * d);
-//    color *= attenuation;
+    //factor de atenuación
+    float attenuation = 1.0 / max(1.0, lights[0].attenuation.x +
+                                      lights[0].attenuation.y * d +
+                                      lights[0].attenuation.z * d * d);
+    color *= attenuation;
   
   return color;
 }
@@ -65,6 +59,6 @@ void main()
 
 		vec3 nL = normalize(L);
         vec3 nV = normalize(V);
-		fragColor = iluminacion(nL, normalize(n.xyz*2-vec3(1)), nV) * c;
+		fragColor = iluminacion(nL, normalize(n.xyz*2-vec3(1)), nV, c, length(L));
 	}
 }
