@@ -73,12 +73,15 @@ void MyRender::setup() {
 	tbrillo->loadImage(App::assetsDir() + "images/rocas-gloss.png");
 	auto tnormales = std::make_shared<Texture2D>();
 	tnormales->loadImage(App::assetsDir() + "images/rocas-normales.png");
+	auto talturas = std::make_shared<Texture2D>();
+	talturas->loadImage(App::assetsDir() + "images/rocas-mapa-alturas.png");
 
 	// Asociamos las texturas a un material
 	auto material = std::make_shared<Material>("bump-mapping");
 	material->setDiffuseTexture(tcolor);
 	material->setSpecularTexture(tbrillo);
 	material->setNormalMapTexture(tnormales);
+	material->setHeightMapTexture(talturas);
 
 	// Asignamos el material a todas las mallas
 	plane.accept([material](Mesh &m) {

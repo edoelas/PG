@@ -6,7 +6,7 @@ $Lights
 layout (binding=$TEXDIFF) uniform sampler2D colores;
 layout (binding=$TEXNORM) uniform sampler2D normales;
 layout (binding=$TEXSPEC) uniform sampler2D brillos;
-//layout (binding=$TEXHEIGHT) uniform sampler2D alturas;
+layout (binding=$TEXHEIGHT) uniform sampler2D alturas;
 
 uniform bool useParallax;
 
@@ -19,12 +19,12 @@ out vec4 fragColor;
 vec4 iluminacion(vec3 L, vec3 N, vec3 V, vec4 color, float d) {
     
     // Multiplicador de la componente difusa
-    float diffuseMult = max(dot(N, L), 0.0);
+    float diffuseMult = max(abs(dot(N, L)), 0.0); // abs??
     float specularMult = 0.0;
     if (diffuseMult > 0.0) {
       // Multiplicador de la componente especular
       vec3 R = reflect(-L, N);
-      specularMult = max(0.0, dot(R, V));
+      specularMult = max(0.0, abs(dot(R, V)));// abs??
       specularMult = pow(specularMult, 0.5);  //TODO: shininess
     }
 
@@ -44,7 +44,7 @@ vec4 iluminacion(vec3 L, vec3 N, vec3 V, vec4 color, float d) {
 void main()
 {
 	if (useParallax) {
-		fragColor = texture(normales, TexCoord);
+		fragColor = texture(alturas, TexCoord);
 	} else {
 		vec4 c = texture(colores, TexCoord);
 		vec4 n = texture(normales, TexCoord);
