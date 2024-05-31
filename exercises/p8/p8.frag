@@ -36,20 +36,13 @@ vec4 iluminacion(vec3 L, vec3 N, vec3 V, vec4 color, float d) {
     float attenuation = 1.0 / max(1.0, lights[0].attenuation.x +
                                       lights[0].attenuation.y * d +
                                       lights[0].attenuation.z * d * d);
-    color *= attenuation;
+    color *= attenuation;   
   
   return color;
 }
 
 void main()
 {
-//    // Renormalizar N
-//    vec3 Nn = normalize(N);
-//    // calcular L y V en el espacio de la camara
-//    vec3 V = normalize(-pos);
-//    // Calcular iluminacion
-//    fragColor = iluminacion(pos, Nn, V);
-
 	if (useParallax) {
 		fragColor = texture(normales, TexCoord);
 	} else {
@@ -59,6 +52,7 @@ void main()
 
 		vec3 nL = normalize(L);
         vec3 nV = normalize(V);
-		fragColor = iluminacion(nL, normalize(n.xyz*2-vec3(1)), nV, c, length(L));
+        vec3 nN = normalize(n.xyz * 2.0 - 1.0);
+		fragColor = iluminacion(nL, nN, nV, c, 1);
 	}
 }

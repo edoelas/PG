@@ -27,10 +27,16 @@ out vec3 V;
 
 void main()
 {
+	vec3 T = vec3(modelviewMatrix * vec4(tangent, 0.0));
+	vec3 N = normalMatrix * normal;
+	vec3 B = cross(N, T);
+	mat3 R = transpose(mat3(T, B, N));
 
-	L = vec3(lights[0].positionEye - modelviewMatrix * position);
-	V = vec3(- modelviewMatrix * position);
 	TexCoord = vec2(texCoord);
+	vec3 Lc = vec3(lights[0].positionEye - modelviewMatrix * position);
+	L = R * Lc;
+//	vec3 Vc = vec3(- modelviewMatrix * position);
+//	V = R * Vc;
+	V = vec3(- modelviewMatrix * position);
 	gl_Position = modelviewprojMatrix * position;
-
-}
+}	

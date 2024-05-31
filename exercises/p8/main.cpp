@@ -69,21 +69,27 @@ void MyRender::setup() {
 	// Cargamos las texturas desde fichero
 	auto tcolor = std::make_shared<Texture2D>();
 	tcolor->loadImage(App::assetsDir() + "images/rocas-color.png");
-  auto tbrillo = std::make_shared<Texture2D>();
+	auto tbrillo = std::make_shared<Texture2D>();
 	tbrillo->loadImage(App::assetsDir() + "images/rocas-gloss.png");
-  auto tnormales = std::make_shared<Texture2D>();
+	auto tnormales = std::make_shared<Texture2D>();
 	tnormales->loadImage(App::assetsDir() + "images/rocas-normales.png");
 
 	// Asociamos las texturas a un material
-  auto material = std::make_shared<Material>("bump-mapping");
-  material->setDiffuseTexture(tcolor);
-  material->setSpecularTexture(tbrillo);
-  material->setNormalMapTexture(tnormales);
+	auto material = std::make_shared<Material>("bump-mapping");
+	material->setDiffuseTexture(tcolor);
+	material->setSpecularTexture(tbrillo);
+	material->setNormalMapTexture(tnormales);
 
-  // Asignamos el material a todas las mallas
-  plane.accept([material](Mesh &m) { m.setMaterial(material); });
+	// Asignamos el material a todas las mallas
+	plane.accept([material](Mesh &m) {
+		m.setMaterial(material);
+		// Define las binormales de cada vértice de la malla. Cada binormal está
+		// definida por 3 floats. Recibe un vector de n binormales.
+		m.setTangent(glm::vec3(1.0, 0.0, 0.0));
+		});
 
-  buildGUI();
+
+	buildGUI();
 	App::getInstance().getWindow().showGUI();
 
 	setCameraHandler(std::make_shared<OrbitCameraHandler>(1.5f));
@@ -109,8 +115,11 @@ void MyRender::render() {
 	mats->translate(GLMatrices::MODEL_MATRIX, -0.5, 0, 0);
 	plane.render();
 	mats->translate(GLMatrices::MODEL_MATRIX, 1.0, 0, 0);
+	//plane.render();
+	mats->rotate(GLMatrices::MODEL_MATRIX, 1*3.14, vec3(0.0, 1.0, 0.0));
 	plane.render();
 	mats->popMatrix(GLMatrices::MODEL_MATRIX);
+
 
   ConstantIllumProgram::use();
 
