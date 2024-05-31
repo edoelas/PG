@@ -9,6 +9,8 @@ layout (binding=$TEXSPEC) uniform sampler2D brillos;
 layout (binding=$TEXHEIGHT) uniform sampler2D alturas;
 
 uniform bool useParallax;
+uniform float parallaxBias;
+uniform float parallaxScale;
 
 in vec2 TexCoord;
 in vec3 L;
@@ -25,7 +27,7 @@ vec4 iluminacion(vec3 L, vec3 N, vec3 V, vec4 color, float d) {
       // Multiplicador de la componente especular
       vec3 R = reflect(-L, N);
       specularMult = max(0.0, abs(dot(R, V)));// abs??
-      specularMult = pow(specularMult, 0.5);  //TODO: shininess
+      specularMult = pow(specularMult, 0.5);
     }
 
     color += lights[0].ambient * 0 +
@@ -43,16 +45,23 @@ vec4 iluminacion(vec3 L, vec3 N, vec3 V, vec4 color, float d) {
 
 void main()
 {
-	if (useParallax) {
-		fragColor = texture(alturas, TexCoord);
-	} else {
-		vec4 c = texture(colores, TexCoord);
-		vec4 n = texture(normales, TexCoord);
-		vec4 b = texture(brillos, TexCoord);
+//	vec4 b = texture(brillos, TexCoord); ???
 
-		vec3 nL = normalize(L);
-        vec3 nV = normalize(V);
-        vec3 nN = normalize(n.xyz * 2.0 - 1.0);
-		fragColor = iluminacion(nL, nN, nV, c, 1);
-	}
+    // Parallax mapping
+    vec2 coord;
+	if (useParallax) {
+        float h = texture(alturas, TexCoord).r * parallaxScale - parallaxBias;
+		coord = TexCoord + h * V.xy;
+	} else {
+	    coord  = TexCoord;
+    }
+
+    vec4 c = texture(colores, coord);
+	vec4 n = texture(normales, coord);
+
+	vec3 nL = normalize(L);
+    vec3 nV = normalize(V);
+    vec3 nN = normalize(n.xyz * 2.0 - 1.0);
+	fragColor = iluminacion(nL, nN, nV, c, 1);
+	
 }

@@ -91,7 +91,6 @@ void MyRender::setup() {
 		m.setTangent(glm::vec3(1.0, 0.0, 0.0));
 		});
 
-
 	buildGUI();
 	App::getInstance().getWindow().showGUI();
 
@@ -122,14 +121,14 @@ void MyRender::render() {
 	mats->rotate(GLMatrices::MODEL_MATRIX, 1*3.14, vec3(0.0, 1.0, 0.0));
 	plane.render();
 	mats->popMatrix(GLMatrices::MODEL_MATRIX);
-
-
-  ConstantIllumProgram::use();
+	
+	ConstantIllumProgram::use();
 
 	if (showAxis->get()) {
 		// Dibujamos los ejes de coordenadas
 		axes.render();
 	}
+
 	// Dibujamos la posición de la luz
 	mats->pushMatrix(GLMatrices::MODEL_MATRIX);
 	mats->setMatrix(GLMatrices::MODEL_MATRIX,
@@ -154,7 +153,8 @@ void MyRender::buildGUI() {
 	showAxis = std::make_shared<CheckBoxWidget>("Mostrar ejes", false);
 	panel->addWidget(showAxis);
 
-	
+	panel->addWidget(std::make_shared<FloatSliderWidget>("Bias", 0.01f, 0.00f, 0.1f, ashader, "parallaxBias"));
+	panel->addWidget(std::make_shared<FloatSliderWidget>("Scale", 0.02f, 0.00f, 0.1f, ashader, "parallaxScale"));
 }
 
 int main(int argc, char *argv[]) {

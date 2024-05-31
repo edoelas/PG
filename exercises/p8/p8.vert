@@ -35,8 +35,8 @@ void main()
 	TexCoord = vec2(texCoord);
 	vec3 Lc = vec3(lights[0].positionEye - modelviewMatrix * position);
 	L = R * Lc;
-//	vec3 Vc = vec3(- modelviewMatrix * position);
-//	V = R * Vc;
-	V = vec3(- modelviewMatrix * position);
+	vec3 Vc = vec3(- modelviewMatrix * position);
+	V = R * Vc;
+//	V = vec3(- modelviewMatrix * position);
 	gl_Position = modelviewprojMatrix * position;
 }	
