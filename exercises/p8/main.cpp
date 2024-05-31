@@ -155,7 +155,17 @@ void MyRender::buildGUI() {
 
 	panel->addWidget(std::make_shared<FloatSliderWidget>("Bias", 0.01f, 0.00f, 0.1f, ashader, "parallaxBias"));
 	panel->addWidget(std::make_shared<FloatSliderWidget>("Scale", 0.02f, 0.00f, 0.1f, ashader, "parallaxScale"));
+
+	// add divider
+	panel->addWidget(std::make_shared<Separator>());
+	panel->addWidget(std::make_shared<Label>("Material properties"));
+
+	panel->addWidget(std::make_shared<FloatSliderWidget>("Ambient", 0.0f, 0.0f, 10.0f, ashader, "matAmbient"));
+	panel->addWidget(std::make_shared<FloatSliderWidget>("Difuse", 0.3f, 0.0f, 10.0f, ashader, "matDifuse"));
+	panel->addWidget(std::make_shared<FloatSliderWidget>("Specular", 0.3f, 0.0f, 10.0f, ashader, "matSpecular"));
+	panel->addWidget(std::make_shared<FloatSliderWidget>("Shininess", 0.7f, 0.0f, 10.0f, ashader, "matShininess"));
 }
+
 
 int main(int argc, char *argv[]) {
 	App &myApp = App::getInstance();
