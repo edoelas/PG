@@ -65,6 +65,7 @@ void main()
     // uniform float ao;
 
     vec3 albedo = texture(baseColorMap, TexCoords).xyz;
+    albedo = pow(albedo, vec3(2.2));
     float metallic = texture(metalnessMap, TexCoords).r;
     float roughness = texture(roughnessMap, TexCoords).r;
     float ao = texture(ambientOcMap, TexCoords).r;
