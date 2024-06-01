@@ -117,8 +117,7 @@ void MyRender::render() {
 	mats->translate(GLMatrices::MODEL_MATRIX, -0.5, 0, 0);
 	plane.render();
 	mats->translate(GLMatrices::MODEL_MATRIX, 1.0, 0, 0);
-	//plane.render();
-	mats->rotate(GLMatrices::MODEL_MATRIX, 1*3.14, vec3(0.0, 1.0, 0.0));
+	//mats->rotate(GLMatrices::MODEL_MATRIX, 1*3.14, vec3(0, 0, 1));
 	plane.render();
 	mats->popMatrix(GLMatrices::MODEL_MATRIX);
 	
@@ -161,7 +160,7 @@ void MyRender::buildGUI() {
 	panel->addWidget(std::make_shared<Label>("Material properties"));
 
 	panel->addWidget(std::make_shared<FloatSliderWidget>("Ambient", 0.0f, 0.0f, 10.0f, ashader, "matAmbient"));
-	panel->addWidget(std::make_shared<FloatSliderWidget>("Difuse", 0.3f, 0.0f, 10.0f, ashader, "matDifuse"));
+	panel->addWidget(std::make_shared<FloatSliderWidget>("Difuse", 0.3f, 0.0f, 10.0f, ashader, "matDiffuse"));
 	panel->addWidget(std::make_shared<FloatSliderWidget>("Specular", 0.3f, 0.0f, 10.0f, ashader, "matSpecular"));
 	panel->addWidget(std::make_shared<FloatSliderWidget>("Shininess", 0.7f, 0.0f, 10.0f, ashader, "matShininess"));
 }
