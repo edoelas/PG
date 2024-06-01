@@ -2,5 +2,7 @@ cmake_minimum_required(VERSION 3.5)
 
 project(ej9-1)
 
-add_executable(ej9-1 main.cpp)
+file (GLOB SOURCES "*.cpp" "*.h" "*.hpp" "*.vert" "*.frag" "*.tese" "*.tesc")
+
+add_executable(ej9-1 ${SOURCES})
 config_example(ej9-1)
