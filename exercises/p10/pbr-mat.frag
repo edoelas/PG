@@ -58,22 +58,14 @@ vec3 fresnelSchlick(float cosTheta, vec3 F0)
 // ----------------------------------------------------------------------------
 void main()
 {	
-
-    // uniform vec3 albedo;
-    // uniform float metallic;
-    // uniform float roughness;
-    // uniform float ao;
-
     vec3 albedo = texture(baseColorMap, TexCoords).xyz;
     albedo = pow(albedo, vec3(2.2));
     float metallic = texture(metalnessMap, TexCoords).r;
     float roughness = texture(roughnessMap, TexCoords).r;
     float ao = texture(ambientOcMap, TexCoords).r;
+    vec4 normal = texture(normalMap, TexCoords);
 
-    // FragColor = vec4(albedo, 1.0);
-
-    
-    vec3 N = normalize(ecNormal);
+    vec3 N = normalize(normal.xyz * 2.0 - 1.0);
     vec3 V = normalize(-ecPosition);
 
     // Calcular el color especular. Para materiales dieléctricos, usar 0.04 (monocromo),

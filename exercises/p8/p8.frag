@@ -45,8 +45,8 @@ out vec4 fragColor;
     //                                   lights[i].attenuation.z * d * d);
     // color *= attenuation;
 
-vec4 iluminacion(vec3 L, vec3 N, vec3 V, vec4 color, float d, vec4 b) {
-	
+vec4 iluminacion(vec3 L, vec3 N, vec3 V, float d, vec4 b) {
+	vec4 color = vec4(0.0, 0.0, 0.0, 1.0);
 	// Multiplicador de la componente difusa
 	float diffuseMult = max(dot(N, L), 0.0); // abs??
 	float specularMult = 0.0;
@@ -89,6 +89,6 @@ void main()
 	vec3 nL = normalize(L);
 	vec3 nV = normalize(V);
 	vec3 nN = normalize(n.xyz * 2.0 - 1.0);
-	fragColor = iluminacion(nL, nN, nV, c, length(V), b);
+	fragColor = iluminacion(nL, nN, nV, length(V), b) * c;
 	
 }
