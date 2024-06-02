@@ -18,8 +18,6 @@ Implementación básica del algoritmo de shadow mapping
 
 */
 
-//TODO: revisar parametros sombras
-
 // Tamaños del shadow map seleccionables por el usuario
 const unsigned int sizes[] = { 64, 128, 512, 1024, 2048 };
 #define INITIAL_DEPTH_TEXTURE_SIZE_INDEX 3
@@ -76,6 +74,10 @@ private:
 	GLint shadowMatrixLoc1, shadowMatrixLoc2;
 	// Tamaño actual de la ventana
 	uint windowWidth, windowHeight;
+
+	// Factor de escala para el shadow map
+	std::shared_ptr<FloatSliderWidget> factorUI, unitsUI;
+
 	void prepareFBO(uint width, uint height);
 	void drawScene(std::shared_ptr<GLMatrices> mats, bool drawFloor = true);
 	void buildGUI();
@@ -117,8 +119,6 @@ void MyRender::prepareFBO(uint width, uint height) {
 void MyRender::setup() {
 	glClearColor(.7f, .7f, .7f, 1.0f);
 	glEnable(GL_DEPTH_TEST);
-	glPolygonOffset(1.0, 1.0);
-	// Preparamos el FBO usado para dibujar el shadow map
 	prepareFBO(sizes[INITIAL_DEPTH_TEXTURE_SIZE_INDEX], sizes[INITIAL_DEPTH_TEXTURE_SIZE_INDEX]);
 
 	// Posición de la luz en el sistema de coordenadas del mundo
@@ -262,6 +262,8 @@ static const glm::mat4 scaleBiasMatrix(0.5, 0.0, 0.0, 0.0, 0.0, 0.5, 0.0, 0.0,
 	0.0, 0.0, 0.5, 0.0, 0.5, 0.5, 0.5, 1.0);
 
 void MyRender::render() {
+	glPolygonOffset(factorUI->get(), unitsUI->get());
+
 
 	// Creando el shadow map, desde el punto de vista de la fuente 1
 	fbo1.bind(GL_DRAW_FRAMEBUFFER);
@@ -382,6 +384,8 @@ void MyRender::buildGUI() {
 
 	panel->addWidget(std::make_shared<CheckBoxWidget>("Grises", false, zshader, "grayScale"));
 
+
+
 	std::vector<std::string> sizesNames;
 	for (size_t i = 0; i < sizeof(sizes) / sizeof(sizes[0]); i++)
 		sizesNames.push_back(std::to_string(sizes[i]));
@@ -390,8 +394,38 @@ void MyRender::buildGUI() {
 	ts->getValue().addListener([this](const GLint& i) {
 		prepareFBO(sizes[i], sizes[i]);
 		currentTextureSize = sizes[i];
-		});
+		switch (sizes[i]) {
+			case 64:
+				factorUI->set(3.6);
+				unitsUI->set(1.0);
+				break;
+			case 128:
+				factorUI->set(3.2);
+				unitsUI->set(1.0);
+				break;
+			case 512:
+				factorUI->set(2.0);
+				unitsUI->set(1.0);
+				break;
+			case 1024:
+				factorUI->set(1.4);
+				unitsUI->set(1.0);
+				break;
+			case 2048:
+				factorUI->set(1.4);
+				unitsUI->set(1.0);
+				break;	
+		}
+	});
 	panel->addWidget(ts);
+
+	// Añadimos un selector de units y factor
+	panel->addWidget(std::make_shared<Separator>());
+	panel->addWidget(std::make_shared<Label>("glPolygonOffset"));
+	factorUI = std::make_shared<FloatSliderWidget>("Factor", 1.4f, 0.0, 10);
+	panel->addWidget(factorUI);
+	unitsUI = std::make_shared<FloatSliderWidget>("Units", 1.0f, 0.0, 100);
+	panel->addWidget(unitsUI);
 
 }
 

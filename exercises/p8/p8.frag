@@ -72,7 +72,7 @@ vec4 iluminacion(vec3 L, vec3 N, vec3 V, float d, vec4 b) {
 
 void main()
 {
-	vec4 b = texture(brillos, TexCoord); // ???
+	vec4 b = texture(brillos, TexCoord);
 
 	// Parallax mapping
 	vec2 coord;
@@ -89,6 +89,6 @@ void main()
 	vec3 nL = normalize(L);
 	vec3 nV = normalize(V);
 	vec3 nN = normalize(n.xyz * 2.0 - 1.0);
-	fragColor = iluminacion(nL, nN, nV, length(V), b) * c;
+	fragColor = iluminacion(nL, nN, nV, length(L), b) * c;
 	
 }

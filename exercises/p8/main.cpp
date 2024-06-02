@@ -159,10 +159,10 @@ void MyRender::buildGUI() {
 	panel->addWidget(std::make_shared<Separator>());
 	panel->addWidget(std::make_shared<Label>("Material properties"));
 
-	panel->addWidget(std::make_shared<FloatSliderWidget>("Ambient", 0.0f, 0.0f, 10.0f, ashader, "matAmbient"));
-	panel->addWidget(std::make_shared<FloatSliderWidget>("Difuse", 0.3f, 0.0f, 10.0f, ashader, "matDiffuse"));
-	panel->addWidget(std::make_shared<FloatSliderWidget>("Specular", 0.3f, 0.0f, 10.0f, ashader, "matSpecular"));
-	panel->addWidget(std::make_shared<FloatSliderWidget>("Shininess", 0.7f, 0.0f, 10.0f, ashader, "matShininess"));
+	panel->addWidget(std::make_shared<FloatSliderWidget>("Ambient", 1.5f, 0.0f, 10.0f, ashader, "matAmbient"));
+	panel->addWidget(std::make_shared<FloatSliderWidget>("Difuse", 0.8f, 0.0f, 10.0f, ashader, "matDiffuse"));
+	panel->addWidget(std::make_shared<FloatSliderWidget>("Specular", 0.6f, 0.0f, 10.0f, ashader, "matSpecular"));
+	panel->addWidget(std::make_shared<FloatSliderWidget>("Shininess", 5.0f, 0.0f, 10.0f, ashader, "matShininess"));
 }
 
 
