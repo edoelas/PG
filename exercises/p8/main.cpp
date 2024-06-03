@@ -35,6 +35,8 @@ private:
 	std::shared_ptr<Program> ashader;
 	Axes axes;
 	Rect plane;
+	Rect plane2;
+	Cylinder cylinder;
 	std::shared_ptr<CheckBoxWidget> showAxis;
 	CircularInterpolator ci;
 	Sphere lightBulb;
@@ -83,12 +85,55 @@ void MyRender::setup() {
 	material->setNormalMapTexture(tnormales);
 	material->setHeightMapTexture(talturas);
 
+
+
 	// Asignamos el material a todas las mallas
 	plane.accept([material](Mesh &m) {
 		m.setMaterial(material);
-		// Define las binormales de cada vértice de la malla. Cada binormal está
-		// definida por 3 floats. Recibe un vector de n binormales.
 		m.setTangent(glm::vec3(1.0, 0.0, 0.0));
+		});
+
+	cylinder.accept([material](Mesh& m) {
+		m.setMaterial(material);
+		auto tangents = std::vector<glm::vec3>();
+		for (auto i = 0; i < m.getVertices().size(); i++) {
+			auto vertex = m.getVertices()[i];
+			auto normal = m.getNormals()[i];
+			// calculate tangent
+			auto tangent = glm::normalize(glm::cross(normal, vec3(0, -1, 0)));
+
+			tangents.push_back(tangent);
+		}
+		m.addTangents(tangents);
+		});
+
+	// suelo 
+	auto tcolor2 = std::make_shared<Texture2D>();
+	tcolor2->loadImage(App::assetsDir() + "images/beige-stonework_albedo.png");
+	auto tbrillo2 = std::make_shared<Texture2D>();
+	tbrillo2->loadImage(App::assetsDir() + "images/beige-stonework_roughness.png");
+	auto tnormales2 = std::make_shared<Texture2D>();
+	tnormales2->loadImage(App::assetsDir() + "images/beige-stonework_normal-ogl.png");
+	auto talturas2 = std::make_shared<Texture2D>();
+	talturas2->loadImage(App::assetsDir() + "images/beige-stonework_height.png");
+
+	// Asociamos las texturas a un material
+	auto material2 = std::make_shared<Material>("bump-mapping");
+	// repeat textures
+	material2->setDiffuseTexture(tcolor2);
+	material2->setSpecularTexture(tbrillo2);
+	material2->setNormalMapTexture(tnormales2);
+	material2->setHeightMapTexture(talturas2);
+
+	plane2.accept([material2](Mesh& m) {
+		m.setMaterial(material2);
+		m.setTangent(glm::vec3(1.0, 0.0, 0.0));
+		//m.addTexCoord(0, std::vector<glm::vec2>{
+		//	glm::vec2(0, 0),
+		//	glm::vec2(0, 10),
+		//	glm::vec2(10, 10),
+		//	glm::vec2(10, 0)
+		//	});
 		});
 
 	buildGUI();
@@ -114,11 +159,27 @@ void MyRender::render() {
 	lights->setLightSource(0, light);
 
 	mats->pushMatrix(GLMatrices::MODEL_MATRIX);
-	mats->translate(GLMatrices::MODEL_MATRIX, -0.5, 0, 0);
+	mats->translate(GLMatrices::MODEL_MATRIX, -1, 0, 0);
+	cylinder.render();
+	mats->translate(GLMatrices::MODEL_MATRIX, 0.5, 0, 0);
 	plane.render();
 	mats->translate(GLMatrices::MODEL_MATRIX, 1.0, 0, 0);
 	//mats->rotate(GLMatrices::MODEL_MATRIX, 1*3.14, vec3(0, 0, 1));
 	plane.render();
+	mats->translate(GLMatrices::MODEL_MATRIX, 0.5, 0, 0);
+	cylinder.render();
+	mats->popMatrix(GLMatrices::MODEL_MATRIX);
+
+	// use plane2 as floor
+	mats->pushMatrix(GLMatrices::MODEL_MATRIX);
+	//mats->scale(GLMatrices::MODEL_MATRIX, 10, 10, 0);
+	mats->rotate(GLMatrices::MODEL_MATRIX, -1.57f, vec3(1, 0, 0));
+	mats->translate(GLMatrices::MODEL_MATRIX, -1, 0, -0.5);
+	plane2.render();
+	mats->translate(GLMatrices::MODEL_MATRIX, 1, 0, 0.0);
+	plane2.render();
+	mats->translate(GLMatrices::MODEL_MATRIX, 1, 0, 0.0);
+	plane2.render();
 	mats->popMatrix(GLMatrices::MODEL_MATRIX);
 	
 	ConstantIllumProgram::use();
@@ -153,7 +214,7 @@ void MyRender::buildGUI() {
 	panel->addWidget(showAxis);
 
 	panel->addWidget(std::make_shared<FloatSliderWidget>("Bias", 0.01f, 0.00f, 0.1f, ashader, "parallaxBias"));
-	panel->addWidget(std::make_shared<FloatSliderWidget>("Scale", 0.02f, 0.00f, 0.1f, ashader, "parallaxScale"));
+	panel->addWidget(std::make_shared<FloatSliderWidget>("Scale", 0.01f, 0.00f, 0.1f, ashader, "parallaxScale"));
 
 	// add divider
 	panel->addWidget(std::make_shared<Separator>());
