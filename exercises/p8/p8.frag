@@ -9,8 +9,14 @@ layout (binding=$TEXSPEC) uniform sampler2D brillos;
 layout (binding=$TEXHEIGHT) uniform sampler2D alturas;
 
 uniform bool useParallax;
+uniform bool useFakeNormals;
+uniform bool showNormalMap;
 uniform float parallaxBias;
 uniform float parallaxScale;
+
+uniform float size;
+// uniform float offset;
+uniform float scale;
 
 uniform float matAmbient;
 uniform float matDiffuse;
@@ -22,28 +28,6 @@ in vec3 L;
 in vec3 V;
 
 out vec4 fragColor;
-
-    // // Multiplicador de la componente difusa
-    // float diffuseMult = max(dot(N, L), 0.0);
-    // float specularMult = 0.0;
-    // if (diffuseMult > 0.0) {
-    //   // Multiplicador de la componente especular
-    //   vec3 R = reflect(-L, N);
-    //   specularMult = max(0.0, dot(R, V));
-    //   specularMult = pow(specularMult, shininess);
-    // }
-
-    // color += lights[i].ambient * ambient +
-    //          lights[i].diffuse * diffuse * diffuseMult +
-    //          lights[i].specular * specular * specularMult;
-
-    // if (lights[i].directional == 1) continue; // si es direccional se ignora atenuación y foco
-    // // factor de atenuación
-    // float d = length(vec3(lights[i].positionEye) - pos);
-    // float attenuation = 1.0 / max(1.0, lights[i].attenuation.x +
-    //                                   lights[i].attenuation.y * d +
-    //                                   lights[i].attenuation.z * d * d);
-    // color *= attenuation;
 
 vec4 iluminacion(vec3 L, vec3 N, vec3 V, float d, vec4 b) {
 	vec4 color = vec4(0.0, 0.0, 0.0, 1.0);
@@ -84,11 +68,34 @@ void main()
 	}
 
 	vec4 c = texture(colores, coord);
-	vec4 n = texture(normales, coord);
+	vec4 n;
+	if( useFakeNormals ){
+		// estimate normal map from height map
+		const vec2 size = vec2(size,0);
+		const ivec3 off = ivec3(-2,0,2);
+		// const ivec3 off = ivec3(-offset,0,offset);
+		vec4 wave = texture(alturas, coord);
+		float s11 = wave.x * scale;
+		float s01 = textureOffset(alturas, coord, off.xy).x * scale;
+		float s21 = textureOffset(alturas, coord, off.zy).x * scale;
+		float s10 = textureOffset(alturas, coord, off.yx).x * scale;
+		float s12 = textureOffset(alturas, coord, off.yz).x * scale;
+		vec3 va = vec3(size.xy,s21-s01);
+		vec3 vb = vec3(size.yx,s12-s10);
+		n = vec4( cross(va,vb), s11 );
+		n = normalize(n);
+		n = (n+1) / 2;
+	} else {
+		n = texture(normales, coord);
+	}
 
 	vec3 nL = normalize(L);
 	vec3 nV = normalize(V);
 	vec3 nN = normalize(n.xyz * 2.0 - 1.0);
-	fragColor = iluminacion(nL, nN, nV, length(L), b) * c;
+
+	if(showNormalMap)
+		fragColor = n;
+	else
+		fragColor = iluminacion(nL, nN, nV, length(L), b) * c;
 	
 }

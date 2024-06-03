@@ -3,6 +3,12 @@
 #include "PGUPV.h"
 #include "GUI3.h"
 
+using glm::vec3;
+using glm::vec4;
+using glm::mat3;
+using glm::mat4;
+using std::vector;
+
 using namespace PGUPV;
 
 class MyRender : public Renderer {
@@ -45,7 +51,7 @@ std::shared_ptr<Scene> loadPBRPistol() {
 
 	model->processMeshes([mat](Mesh& m) {
 		m.setMaterial(mat);
-		});
+	});
 
 	model->setMaterial(0, mat);
 	return model;
@@ -55,7 +61,7 @@ void MyRender::setup() {
 	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 	glEnable(GL_DEPTH_TEST);
 
-	// Construímos el objeto GLMatrices
+	// Construï¿½mos el objeto GLMatrices
 	pbr_program = std::make_shared<Program>();
 	pbr_program->addAttributeLocation(Mesh::VERTICES, "position");
 	pbr_program->addAttributeLocation(Mesh::NORMALS, "normal");
@@ -122,7 +128,7 @@ void MyRender::reshape(uint w, uint h) {
 	if (h == 0)
 		h = 1;
 	float ar = (float)w / h;
-	// Definimos una cámara perspectiva con la misma razón de aspecto que la
+	// Definimos una cï¿½mara perspectiva con la misma razï¿½n de aspecto que la
 	// ventana
 	mats->setMatrix(GLMatrices::PROJ_MATRIX,
 		glm::perspective(glm::radians(60.0f), ar, .1f, 30.0f));

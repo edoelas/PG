@@ -128,12 +128,6 @@ void MyRender::setup() {
 	plane2.accept([material2](Mesh& m) {
 		m.setMaterial(material2);
 		m.setTangent(glm::vec3(1.0, 0.0, 0.0));
-		//m.addTexCoord(0, std::vector<glm::vec2>{
-		//	glm::vec2(0, 0),
-		//	glm::vec2(0, 10),
-		//	glm::vec2(10, 10),
-		//	glm::vec2(10, 0)
-		//	});
 		});
 
 	buildGUI();
@@ -209,14 +203,22 @@ void MyRender::buildGUI() {
 	panel->setPosition(580, 10);
 	panel->setSize(200, 80);
 
-	panel->addWidget(std::make_shared<CheckBoxWidget>("Parallax", false, ashader, "useParallax"));
 	showAxis = std::make_shared<CheckBoxWidget>("Mostrar ejes", false);
 	panel->addWidget(showAxis);
-
+	panel->addWidget(std::make_shared<CheckBoxWidget>("Parallax", false, ashader, "useParallax"));
 	panel->addWidget(std::make_shared<FloatSliderWidget>("Bias", 0.01f, 0.00f, 0.1f, ashader, "parallaxBias"));
 	panel->addWidget(std::make_shared<FloatSliderWidget>("Scale", 0.01f, 0.00f, 0.1f, ashader, "parallaxScale"));
 
-	// add divider
+	// Normals
+	panel->addWidget(std::make_shared<Separator>());
+	panel->addWidget(std::make_shared<Label>("Normals"));
+	panel->addWidget(std::make_shared<CheckBoxWidget>("Fake normals", false, ashader, "useFakeNormals"));
+	panel->addWidget(std::make_shared<CheckBoxWidget>("Show normal map", false, ashader, "showNormalMap"));
+	panel->addWidget(std::make_shared<FloatSliderWidget>("Size NM", 2.3f, 0.00f, 10.0f, ashader, "size"));
+	// panel->addWidget(std::make_shared<FloatSliderWidget>("Offset", 2.0f, 0.0f, 5.0f, ashader, "offset"));
+	panel->addWidget(std::make_shared<FloatSliderWidget>("Scale NM", 5.0f, 0.0f, 10.0f, ashader, "scale"));
+
+	// Material
 	panel->addWidget(std::make_shared<Separator>());
 	panel->addWidget(std::make_shared<Label>("Material properties"));
 
